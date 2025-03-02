@@ -1,0 +1,47 @@
+.route-detail {
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+
+    h2 {
+        color: #333;
+        margin-bottom: 20px;
+    }
+}
+
+.loading,
+.error {
+    padding: 20px;
+    text-align: center;
+}
+
+.error {
+    color: #dc3545;
+}
+
+.data-container {
+    display: grid;
+    gap: 16px;
+}
+
+.data-item {
+    background-color: #f8f9fa;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.data-point {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+
+    .label {
+        font-weight: bold;
+        color: #555;
+    }
+
+    .value {
+        color: #333;
+    }
+}

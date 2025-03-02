@@ -1,0 +1,20 @@
+<div class="route-list">
+    <h2>Routes</h2>
+
+    <div *ngIf="loading" class="loading">
+        Loading routes...
+    </div>
+
+    <div *ngIf="error" class="error">
+        {{ error }}
+    </div>
+
+    <div *ngIf="!loading && !error" class="routes-container">
+        <div *ngFor="let route of routes" class="route-item">
+            <span class="route-name">{{ route.name }}</span>
+            <button [routerLink]="['/routes', route.id]" class="view-button">
+                View Details
+            </button>
+        </div>
+    </div>
+</div>

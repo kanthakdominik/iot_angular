@@ -1,0 +1,28 @@
+<div class="route-detail">
+    <h2>Route Details</h2>
+
+    <div *ngIf="loading" class="loading">
+        Loading route data...
+    </div>
+
+    <div *ngIf="error" class="error">
+        {{ error }}
+    </div>
+
+    <div *ngIf="!loading && !error" class="data-container">
+        <div *ngFor="let data of routeData" class="data-item">
+            <div class="data-point">
+                <span class="label">Latitude:</span>
+                <span class="value">{{ data.latitude }}</span>
+            </div>
+            <div class="data-point">
+                <span class="label">Longitude:</span>
+                <span class="value">{{ data.longitude }}</span>
+            </div>
+            <div class="data-point">
+                <span class="label">USV/Hour:</span>
+                <span class="value">{{ data.usvPerHour }}</span>
+            </div>
+        </div>
+    </div>
+</div>
