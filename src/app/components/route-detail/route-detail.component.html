@@ -1,27 +1,24 @@
 <div class="route-detail">
-    <h2>Route Details</h2>
-
-    <div *ngIf="loading" class="loading">
-        Loading route data...
+    <div class="header">
+        <h2>Route Details</h2>
+        <button [routerLink]="['/routes']" class="back-button">Back to Route List</button>
     </div>
 
-    <div *ngIf="error" class="error">
-        {{ error }}
-    </div>
+    <div class="content-wrapper">
+        <div class="map-container">
+            <div *ngIf="loading" class="loading">Loading route data...</div>
+            <div *ngIf="error" class="error">{{ error }}</div>
+            <div *ngIf="!loading && !error" #mapRef id="mapRef"></div>
+        </div>
 
-    <div *ngIf="!loading && !error" class="data-container">
-        <div *ngFor="let data of routeData" class="data-item">
-            <div class="data-point">
-                <span class="label">Latitude:</span>
-                <span class="value">{{ data.latitude }}</span>
-            </div>
-            <div class="data-point">
-                <span class="label">Longitude:</span>
-                <span class="value">{{ data.longitude }}</span>
-            </div>
-            <div class="data-point">
-                <span class="label">USV/Hour:</span>
-                <span class="value">{{ data.usvPerHour }}</span>
+        <div class="legend">
+            <h4>Radiation Levels (µSv/h)</h4>
+            <div class="legend-items">
+                <div class="legend-item" *ngFor="let item of legendItems">
+                    <i [style.background-color]="item.color"></i>
+                    <span class="range">{{item.range}}</span>
+                    <span class="label">{{item.label}}</span>
+                </div>
             </div>
         </div>
     </div>
