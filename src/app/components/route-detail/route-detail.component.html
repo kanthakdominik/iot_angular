@@ -1,7 +1,14 @@
 <div class="route-detail">
     <div class="header">
-        <h2>Route Details</h2>
-        <button [routerLink]="['/routes']" class="back-button">Back to Route List</button>
+        <div class="title-section">
+            <h2>{{routeName}}</h2>
+            <button class="edit-button" (click)="editRouteName()" title="Edit Route Name">
+                <span class="material-icons">edit</span>
+            </button>
+        </div>
+        <div class="header-buttons">
+            <button [routerLink]="['/routes']" class="back-button">Back to Route List</button>
+        </div>
     </div>
 
     <div class="content-wrapper">
@@ -9,6 +16,9 @@
             <div *ngIf="loading" class="loading">Loading route data...</div>
             <div *ngIf="error" class="error">{{ error }}</div>
             <div *ngIf="!loading && !error" #mapRef id="mapRef"></div>
+            <button (click)="tryInitMap()" class="refresh-button" title="Refresh Map">
+                <span class="material-icons">refresh</span>
+            </button>
         </div>
 
         <div class="legend">
@@ -23,3 +33,9 @@
         </div>
     </div>
 </div>
+<app-edit-route-name-modal 
+    *ngIf="showEditModal"
+    [currentName]="routeName"
+    (save)="handleSaveRouteName($event)"
+    (cancel)="handleCancelEdit()">
+</app-edit-route-name-modal>

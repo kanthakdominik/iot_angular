@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError } from 'rxjs';
 import { IotData } from '../models/iot-data.model';
+import { Route } from '@angular/router';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -21,8 +22,8 @@ export class RouteDataService {
     );
   }
 
-  getAllRoutes(): Observable<any[]> {
-    return this.http.get<any[]>(this.apiUrl).pipe(
+  getAllRoutes(): Observable<Route[]> {
+    return this.http.get<Route[]>(this.apiUrl).pipe(
       catchError((error) => {
         console.error('Error fetching routes:', error);
         throw error;
