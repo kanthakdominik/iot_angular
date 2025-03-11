@@ -1,21 +1,21 @@
 <div class="modal-header">
-    <h4 class="modal-title">Edit Route Name</h4>
-    <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+  <h4 class="modal-title">Edit Route Name</h4>
+  <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+</div>
+<div class="modal-body">
+  <div class="form-group">
+    <input 
+      type="text" 
+      [(ngModel)]="newName" 
+      (keyup.enter)="onSave()"
+      (keyup.escape)="onCancel()"
+      class="form-control"
+      placeholder="Enter new route name"
+    >
+    <div *ngIf="error" class="text-danger mt-2">{{ error }}</div>
   </div>
-  <div class="modal-body">
-    <div class="form-group">
-      <input 
-        type="text" 
-        [(ngModel)]="newName" 
-        (keyup.enter)="onSave()"
-        (keyup.escape)="onCancel()"
-        class="form-control"
-        placeholder="Enter new route name"
-      >
-      <div *ngIf="error" class="text-danger mt-2">{{ error }}</div>
-    </div>
-  </div>
-  <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" (click)="onCancel()">Cancel</button>
-    <button type="button" class="btn btn-primary" (click)="onSave()">Save</button>
-  </div>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-secondary" (click)="onCancel()">Cancel</button>
+  <button type="button" class="btn btn-primary" (click)="onSave()">Save</button>
+</div>
