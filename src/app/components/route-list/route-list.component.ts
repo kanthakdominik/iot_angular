@@ -16,7 +16,7 @@ export class RouteListComponent implements OnInit {
   loading = false;
   error = '';
 
-  constructor(private routeService: RouteService) { }
+  constructor(private routeService: RouteService) {}
 
   ngOnInit(): void {
     this.loadRoutes();

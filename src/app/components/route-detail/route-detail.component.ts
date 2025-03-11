@@ -1,19 +1,13 @@
-import {
-  Component,
-  OnInit,
-  AfterViewInit,
-  OnDestroy,
-  ViewChild,
-  ElementRef
-} from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { IotData } from '../../models/iot-data.model';
 import { MapService } from '../../services/map.service';
 import { RadiationLevelService } from '../../services/radiation-level.service';
-import { RouteDataService } from '../../services/route-data.service';
+import { RouteService } from '../../services/route.service'; // Change this import
 import { EditRouteNameModalComponent } from '../edit-route-name-modal/edit-route-name-modal.component';
+import { Route } from '../../models/route.model';
 
 @Component({
   selector: 'app-route-detail',
@@ -26,7 +20,7 @@ export class RouteDetailComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('mapRef') mapRef!: ElementRef;
 
   routeId!: number;
-  routeName = 'Route Details';
+  routeName = '';
   routeData: IotData[] = [];
   loading = false;
   error = '';
@@ -38,13 +32,15 @@ export class RouteDetailComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private modalService: NgbModal,
     private route: ActivatedRoute,
-    private routeDataService: RouteDataService,
+    private routeService: RouteService,
     private mapService: MapService
   ) { }
 
   ngOnInit(): void {
     this.routeId = Number(this.route.snapshot.paramMap.get('id'));
-    this.loadRouteData();
+    if (this.routeId) {
+      this.loadRouteDetails();
+    }
   }
 
   ngAfterViewInit(): void {
@@ -58,22 +54,41 @@ export class RouteDetailComponent implements OnInit, AfterViewInit, OnDestroy {
   editRouteName(): void {
     const modalRef = this.modalService.open(EditRouteNameModalComponent);
     modalRef.componentInstance.currentName = this.routeName;
+    modalRef.componentInstance.routeId = this.routeId;
     
     modalRef.result.then(
       (newName: string) => {
-        this.routeName = newName;
-        // Here you would typically call your service to update the route name
-        // this.routeService.updateRouteName(this.routeId, newName).subscribe(...);
+        this.routeService.updateRouteName(this.routeId, newName).subscribe({
+          next: () => {
+            this.routeName = newName;
+          },
+          error: (err) => {
+            console.error('Error updating route name:', err);
+            // Optionally show error to user
+          }
+        });
       },
-      () => {} // Dismissed
+      () => {} // Modal dismissed
     );
   }
 
-  private loadRouteData(): void {
-    if (!this.routeId) return;
-
+  private loadRouteDetails(): void {
     this.loading = true;
-    this.routeDataService.getRouteData(this.routeId).subscribe({
+    this.routeService.getRoute(this.routeId).subscribe({
+      next: (route: Route) => {
+        this.routeName = route.name;
+        this.loadRouteData();
+      },
+      error: (err: any) => {
+        this.error = 'Failed to load route details';
+        this.loading = false;
+        console.error('Error loading route details:', err);
+      }
+    });
+  }
+
+  private loadRouteData(): void {
+    this.routeService.getRouteData(this.routeId).subscribe({
       next: (data) => {
         this.routeData = data;
         this.loading = false;

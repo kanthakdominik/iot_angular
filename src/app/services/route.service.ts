@@ -18,6 +18,10 @@ export class RouteService {
     return this.http.get<Route[]>(`${this.apiUrl}/routes`);
   }
 
+  getRoute(routeId: number): Observable<Route> {
+    return this.http.get<Route>(`${this.apiUrl}/routes/${routeId}`);
+  }
+
   getRouteData(routeId: number): Observable<IotData[]> {
     return this.http.get<IotData[]>(`${this.apiUrl}/routes/${routeId}/data`);
   }
