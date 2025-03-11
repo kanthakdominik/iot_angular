@@ -16,7 +16,7 @@
             <div *ngIf="loading" class="loading">Loading route data...</div>
             <div *ngIf="error" class="error">{{ error }}</div>
             <div *ngIf="!loading && !error" #mapRef id="mapRef"></div>
-            <button (click)="tryInitMap()" class="refresh-button" title="Refresh Map">
+            <button (click)="refreshMap()" class="refresh-button" title="Refresh Map">
                 <span class="material-icons">refresh</span>
             </button>
         </div>

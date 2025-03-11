@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -16,7 +16,7 @@ import { Route } from '../../models/route.model';
   templateUrl: './route-detail.component.html',
   styleUrls: ['./route-detail.component.scss']
 })
-export class RouteDetailComponent implements OnInit, AfterViewInit, OnDestroy {
+export class RouteDetailComponent implements OnInit, OnDestroy {
   @ViewChild('mapRef') mapRef!: ElementRef;
 
   routeId!: number;
@@ -43,10 +43,6 @@ export class RouteDetailComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  ngAfterViewInit(): void {
-    this.tryInitMap();
-  }
-
   ngOnDestroy(): void {
     this.mapService.destroy();
   }
@@ -68,7 +64,7 @@ export class RouteDetailComponent implements OnInit, AfterViewInit, OnDestroy {
           }
         });
       },
-      () => {} // Modal dismissed
+      () => {}
     );
   }
 
@@ -92,9 +88,10 @@ export class RouteDetailComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (data) => {
         this.routeData = data;
         this.loading = false;
-        if (this.mapService.isMapInitialized()) {
-          this.updateMap();
-        }
+        this.initAttempts = 0;
+        setTimeout(() => {
+          this.tryInitMap();
+        }, 300);
       },
       error: (err) => {
         this.error = 'Failed to load route data';
@@ -121,6 +118,7 @@ export class RouteDetailComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     try {
+      this.error = '';
       this.mapService.initMap(this.mapRef.nativeElement);
       if (this.routeData.length > 0) {
         this.updateMap();
@@ -129,5 +127,12 @@ export class RouteDetailComponent implements OnInit, AfterViewInit, OnDestroy {
       console.error('Error initializing map:', error);
       this.error = 'Failed to initialize map';
     }
+  }
+
+  public refreshMap(): void {
+    this.error = '';
+    this.initAttempts = 0;
+    this.mapService.destroy();
+    this.loadRouteData();
   }
 }
