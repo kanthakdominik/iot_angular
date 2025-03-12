@@ -74,7 +74,7 @@ export class MapService {
     if (this.polyline) {
       this.polyline.remove();
     }
-    
+
     if (coordinates.length > 0) {
       L.polyline(coordinates, {
         color: '#0066cc',

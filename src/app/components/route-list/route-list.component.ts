@@ -21,7 +21,7 @@ export class RouteListComponent implements OnInit {
   constructor(
     private routeService: RouteService,
     private modalService: NgbModal
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadRoutes();
@@ -31,12 +31,12 @@ export class RouteListComponent implements OnInit {
     const modalRef = this.modalService.open(EditRouteNameModalComponent);
     modalRef.componentInstance.currentName = route.name;
     modalRef.componentInstance.routeId = route.id;
-    
+
     modalRef.result.then(
       (newName: string) => {
         route.name = newName;
       },
-      () => {}
+      () => { }
     );
   }
 

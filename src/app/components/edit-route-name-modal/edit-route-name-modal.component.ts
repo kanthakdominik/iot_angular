@@ -21,7 +21,7 @@ export class EditRouteNameModalComponent {
   constructor(
     public activeModal: NgbActiveModal,
     private routeService: RouteService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.newName = this.currentName;

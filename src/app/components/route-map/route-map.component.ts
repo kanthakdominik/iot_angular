@@ -1,12 +1,10 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { IotData } from '../../models/iot-data.model';
 import { MapService } from '../../services/map.service';
 import { RadiationLevelService } from '../../services/radiation-level.service';
-import { RouteService } from '../../services/route.service'; // Change this import
-import { EditRouteNameModalComponent } from '../edit-route-name-modal/edit-route-name-modal.component';
+import { RouteService } from '../../services/route.service';
 import { Route } from '../../models/route.model';
 
 @Component({
@@ -30,7 +28,6 @@ export class RouteMapComponent implements OnInit, OnDestroy {
   private readonly MAX_ATTEMPTS = 5;
 
   constructor(
-    private modalService: NgbModal,
     private route: ActivatedRoute,
     private routeService: RouteService,
     private mapService: MapService
