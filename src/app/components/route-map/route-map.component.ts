@@ -47,17 +47,39 @@ export class RouteMapComponent implements OnInit, OnDestroy {
     this.mapService.destroy();
   }
 
-  editRouteName(): void {
-    const modalRef = this.modalService.open(EditRouteNameModalComponent);
-    modalRef.componentInstance.currentName = this.routeName;
-    modalRef.componentInstance.routeId = this.routeId;
-    
-    modalRef.result.then(
-      (newName: string) => {
-        this.routeName = newName;
-      },
-      () => {}
-    );
+  public refreshMap(): void {
+    this.error = '';
+    this.initAttempts = 0;
+    this.mapService.destroy();
+    this.loadRouteData();
+  }
+
+  public tryInitMap(): void {
+    if (this.initAttempts >= this.MAX_ATTEMPTS) {
+      this.error = 'Failed to initialize map after multiple attempts';
+      return;
+    }
+
+    if (!this.mapRef?.nativeElement?.offsetHeight) {
+      this.initAttempts++;
+      setTimeout(() => this.tryInitMap(), 100);
+      return;
+    }
+
+    try {
+      this.error = '';
+      this.mapService.initMap(this.mapRef.nativeElement);
+      if (this.routeData.length > 0) {
+        this.updateMap();
+      }
+    } catch (error) {
+      console.error('Error initializing map:', error);
+      this.error = 'Failed to initialize map';
+    }
+  }
+
+  private updateMap(): void {
+    this.mapService.updateMapWithData(this.routeData);
   }
 
   private loadRouteDetails(): void {
@@ -91,40 +113,5 @@ export class RouteMapComponent implements OnInit, OnDestroy {
         console.error('Error loading route data:', err);
       }
     });
-  }
-
-  private updateMap(): void {
-    this.mapService.updateMapWithData(this.routeData);
-  }
-
-  public tryInitMap(): void {
-    if (this.initAttempts >= this.MAX_ATTEMPTS) {
-      this.error = 'Failed to initialize map after multiple attempts';
-      return;
-    }
-
-    if (!this.mapRef?.nativeElement?.offsetHeight) {
-      this.initAttempts++;
-      setTimeout(() => this.tryInitMap(), 100);
-      return;
-    }
-
-    try {
-      this.error = '';
-      this.mapService.initMap(this.mapRef.nativeElement);
-      if (this.routeData.length > 0) {
-        this.updateMap();
-      }
-    } catch (error) {
-      console.error('Error initializing map:', error);
-      this.error = 'Failed to initialize map';
-    }
-  }
-
-  public refreshMap(): void {
-    this.error = '';
-    this.initAttempts = 0;
-    this.mapService.destroy();
-    this.loadRouteData();
   }
 }
