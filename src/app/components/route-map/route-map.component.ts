@@ -10,13 +10,13 @@ import { EditRouteNameModalComponent } from '../edit-route-name-modal/edit-route
 import { Route } from '../../models/route.model';
 
 @Component({
-  selector: 'app-route-detail',
+  selector: 'app-route-map',
   standalone: true,
   imports: [CommonModule, RouterModule],
-  templateUrl: './route-detail.component.html',
-  styleUrls: ['./route-detail.component.scss']
+  templateUrl: './route-map.component.html',
+  styleUrls: ['./route-map.component.scss']
 })
-export class RouteDetailComponent implements OnInit, OnDestroy {
+export class RouteMapComponent implements OnInit, OnDestroy {
   @ViewChild('mapRef') mapRef!: ElementRef;
 
   routeId!: number;
@@ -54,15 +54,7 @@ export class RouteDetailComponent implements OnInit, OnDestroy {
     
     modalRef.result.then(
       (newName: string) => {
-        this.routeService.updateRouteName(this.routeId, newName).subscribe({
-          next: () => {
-            this.routeName = newName;
-          },
-          error: (err) => {
-            console.error('Error updating route name:', err);
-            // Optionally show error to user
-          }
-        });
+        this.routeName = newName;
       },
       () => {}
     );

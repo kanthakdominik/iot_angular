@@ -12,8 +12,11 @@
     <div *ngIf="!loading && !error" class="routes-container">
         <div *ngFor="let route of routes" class="route-item">
             <span class="route-name">{{ route.name }}</span>
-            <button [routerLink]="['/routes', route.id]" class="view-button">
+            <button [routerLink]="['/routes', route.id, 'map']" class="view-button">
                 View Map
+            </button>
+            <button [routerLink]="['/routes', route.id, 'chart']" class="view-button">
+                View Chart
             </button>
         </div>
     </div>

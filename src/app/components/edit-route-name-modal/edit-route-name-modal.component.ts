@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { RouteService } from '../../services/route.service';
 
 @Component({
   selector: 'app-edit-route-name-modal',
@@ -12,10 +13,15 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 })
 export class EditRouteNameModalComponent {
   @Input() currentName: string = '';
+  @Input() routeId!: number;
   newName: string = '';
   error: string = '';
+  loading: boolean = false;
 
-  constructor(public activeModal: NgbActiveModal) {}
+  constructor(
+    public activeModal: NgbActiveModal,
+    private routeService: RouteService
+  ) {}
 
   ngOnInit() {
     this.newName = this.currentName;
@@ -24,9 +30,20 @@ export class EditRouteNameModalComponent {
   onSave() {
     const trimmedName = this.newName.trim();
     if (this.isValidRouteName(trimmedName)) {
-      this.activeModal.close(trimmedName);
+      this.loading = true;
+      this.routeService.updateRouteName(this.routeId, trimmedName).subscribe({
+        next: () => {
+          this.loading = false;
+          this.activeModal.close(trimmedName);
+        },
+        error: (err) => {
+          this.loading = false;
+          this.error = 'Failed to rename the route';
+        }
+      });
     }
   }
+
 
   onCancel() {
     this.activeModal.dismiss('cancel');
