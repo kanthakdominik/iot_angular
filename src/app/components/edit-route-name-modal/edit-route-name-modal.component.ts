@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
@@ -11,52 +11,59 @@ import { RouteService } from '../../services/route.service';
   templateUrl: './edit-route-name-modal.component.html',
   styleUrls: ['./edit-route-name-modal.component.scss']
 })
-export class EditRouteNameModalComponent {
-  @Input() currentName: string = '';
+export class EditRouteNameModalComponent implements OnInit {
+  @Input() currentName = '';
   @Input() routeId!: number;
-  newName: string = '';
-  error: string = '';
-  loading: boolean = false;
+
+  newName = '';
+  error = '';
+  loading = false;
+
+  private readonly NAME_MIN_LENGTH = 3;
+  private readonly NAME_MAX_LENGTH = 50;
+  private readonly NAME_PATTERN = /^[a-zA-Z0-9\s\-_.,()]+$/;
 
   constructor(
     public activeModal: NgbActiveModal,
     private routeService: RouteService
-  ) { }
+  ) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.newName = this.currentName;
   }
 
-  onSave() {
+  onSave(): void {
     const trimmedName = this.newName.trim();
     if (this.isValidRouteName(trimmedName)) {
-      this.loading = true;
-      this.routeService.updateRouteName(this.routeId, trimmedName).subscribe({
-        next: () => {
-          this.loading = false;
-          this.activeModal.close(trimmedName);
-        },
-        error: (err) => {
-          this.loading = false;
-          this.error = 'Failed to rename the route';
-        }
-      });
+      this.updateRouteName(trimmedName);
     }
   }
 
-
-  onCancel() {
+  onCancel(): void {
     this.activeModal.dismiss('cancel');
   }
 
+  private updateRouteName(name: string): void {
+    this.loading = true;
+    this.routeService.updateRouteName(this.routeId, name).subscribe({
+      next: () => {
+        this.loading = false;
+        this.activeModal.close(name);
+      },
+      error: () => {
+        this.loading = false;
+        this.error = 'Failed to rename the route';
+      }
+    });
+  }
+
   private isValidRouteName(name: string): boolean {
-    if (name.length < 3 || name.length > 50) {
-      this.error = 'Route name must be between 3 and 50 characters';
+    if (name.length < this.NAME_MIN_LENGTH || name.length > this.NAME_MAX_LENGTH) {
+      this.error = `Route name must be between ${this.NAME_MIN_LENGTH} and ${this.NAME_MAX_LENGTH} characters`;
       return false;
     }
 
-    const validNameRegex = /^[a-zA-Z0-9\s\-_.,()]+$/;
-    if (!validNameRegex.test(name)) {
+    if (!this.NAME_PATTERN.test(name)) {
       this.error = 'Route name can only contain letters, numbers, spaces, and basic punctuation';
       return false;
     }

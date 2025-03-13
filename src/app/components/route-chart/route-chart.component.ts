@@ -1,11 +1,12 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { IotData } from '../../models/iot-data.model';
-import { RouteService } from '../../services/route.service';
-import { Route } from '../../models/route.model';
 import { Chart } from 'chart.js';
 import 'chart.js/auto';
+
+import { IotData } from '../../models/iot-data.model';
+import { Route } from '../../models/route.model';
+import { RouteService } from '../../services/route.service';
 
 @Component({
   selector: 'app-route-chart',
@@ -16,13 +17,16 @@ import 'chart.js/auto';
 })
 export class RouteChartComponent implements OnInit {
   @ViewChild('chartCanvas') chartCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('chartCanvasCpm') chartCanvasCpm!: ElementRef<HTMLCanvasElement>;
 
-  routeId!: number;
   routeName = '';
-  routeData: IotData[] = [];
   loading = false;
   error = '';
-  chart: Chart | undefined;
+
+  private routeId!: number;
+  private routeData: IotData[] = [];
+  private chart: Chart | undefined;
+  private chartCpm: Chart | undefined;
 
   constructor(
     private route: ActivatedRoute,
@@ -30,53 +34,13 @@ export class RouteChartComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    this.initializeRouteId();
+  }
+
+  private initializeRouteId(): void {
     this.routeId = Number(this.route.snapshot.paramMap.get('id'));
     if (this.routeId) {
       this.loadRouteDetails();
-    }
-  }
-
-  private initChart(): void {
-    const ctx = this.chartCanvas.nativeElement.getContext('2d');
-    if (ctx) {
-      this.chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: this.routeData.map(d => new Date(d.timestamp).toLocaleTimeString()),
-          datasets: [{
-            label: 'Radiation Level (µSv/h)',
-            data: this.routeData.map(d => d.usvPerHour),
-            borderColor: 'rgb(255, 99, 132)',
-            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-            tension: 0.1,
-            fill: true
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              title: {
-                display: true,
-                text: 'Radiation Level (µSv/h)'
-              }
-            },
-            x: {
-              title: {
-                display: true,
-                text: 'Time'
-              },
-              ticks: {
-                maxTicksLimit: 20,
-                maxRotation: 45,
-                autoSkip: true,
-              }
-            }
-          }
-        }
-      });
     }
   }
 
@@ -88,9 +52,7 @@ export class RouteChartComponent implements OnInit {
         this.loadRouteData();
       },
       error: (err: any) => {
-        this.error = 'Failed to load route details';
-        this.loading = false;
-        console.error('Error loading route details:', err);
+        this.handleError('Failed to load route details', err);
       }
     });
   }
@@ -105,10 +67,92 @@ export class RouteChartComponent implements OnInit {
         }
       },
       error: (err) => {
-        this.error = 'Failed to load route data';
-        this.loading = false;
-        console.error('Error loading route data:', err);
+        this.handleError('Failed to load route data', err);
       }
     });
+  }
+
+  private initChart(): void {
+    this.initRadiationChart();
+    this.initCpmChart();
+  }
+
+  private initRadiationChart(): void {
+    const ctx = this.chartCanvas.nativeElement.getContext('2d');
+    if (!ctx) return;
+
+    this.chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: this.getTimeLabels(),
+        datasets: [{
+          label: 'Radiation Level (µSv/h)',
+          data: this.routeData.map(d => d.usvPerHour),
+          borderColor: 'rgb(255, 99, 132)',
+          backgroundColor: 'rgba(255, 99, 132, 0.2)',
+          tension: 0.1,
+          fill: true
+        }]
+      },
+      options: this.getChartOptions('Radiation Level (µSv/h)')
+    });
+  }
+
+  private initCpmChart(): void {
+    const ctxCpm = this.chartCanvasCpm.nativeElement.getContext('2d');
+    if (!ctxCpm) return;
+
+    this.chartCpm = new Chart(ctxCpm, {
+      type: 'line',
+      data: {
+        labels: this.getTimeLabels(),
+        datasets: [{
+          label: 'Counts Per Minute (CPM)',
+          data: this.routeData.map(d => d.cpm),
+          borderColor: 'rgb(54, 162, 235)',
+          backgroundColor: 'rgba(54, 162, 235, 0.2)',
+          tension: 0.1,
+          fill: true
+        }]
+      },
+      options: this.getChartOptions('Counts Per Minute (CPM)')
+    });
+  }
+
+  private getTimeLabels(): string[] {
+    return this.routeData.map(d => new Date(d.timestamp).toLocaleTimeString());
+  }
+
+  private getChartOptions(yAxisLabel: string): any {
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: yAxisLabel
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Time'
+          },
+          ticks: {
+            maxTicksLimit: 15,
+            maxRotation: 45,
+            autoSkip: true,
+          }
+        }
+      }
+    };
+  }
+
+  private handleError(message: string, error: any): void {
+    this.error = message;
+    this.loading = false;
+    console.error(`${message}:`, error);
   }
 }

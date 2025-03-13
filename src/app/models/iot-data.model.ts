@@ -1,4 +1,5 @@
 export interface IotData {
+    id: number;
     latitude: number;
     longitude: number;
     usvPerHour: number;

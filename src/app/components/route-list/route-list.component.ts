@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
+
 import { RouteService } from '../../services/route.service';
 import { Route } from '../../models/route.model';
-import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { EditRouteNameModalComponent } from '../edit-route-name-modal/edit-route-name-modal.component';
 
 @Component({
@@ -33,24 +34,26 @@ export class RouteListComponent implements OnInit {
     modalRef.componentInstance.routeId = route.id;
 
     modalRef.result.then(
-      (newName: string) => {
-        route.name = newName;
-      },
-      () => { }
+      (newName: string) => this.updateRouteName(route, newName),
+      () => void 0
     );
+  }
+
+  private updateRouteName(route: Route, newName: string): void {
+    route.name = newName;
   }
 
   private loadRoutes(): void {
     this.loading = true;
     this.routeService.getAllRoutes().subscribe({
-      next: (routes) => {
+      next: (routes: Route[]) => {
         this.routes = routes;
         this.loading = false;
       },
-      error: (err) => {
+      error: (error: Error) => {
         this.error = 'Failed to load routes';
         this.loading = false;
-        console.error('Error loading routes:', err);
+        console.error('Error loading routes:', error);
       }
     });
   }

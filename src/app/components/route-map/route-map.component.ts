@@ -1,11 +1,12 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
+
 import { IotData } from '../../models/iot-data.model';
+import { Route } from '../../models/route.model';
 import { MapService } from '../../services/map.service';
 import { RadiationLevelService } from '../../services/radiation-level.service';
 import { RouteService } from '../../services/route.service';
-import { Route } from '../../models/route.model';
 
 @Component({
   selector: 'app-route-map',
@@ -22,10 +23,10 @@ export class RouteMapComponent implements OnInit, OnDestroy {
   routeData: IotData[] = [];
   loading = false;
   error = '';
-
   readonly legendItems = RadiationLevelService.legendItems;
-  private initAttempts = 0;
+
   private readonly MAX_ATTEMPTS = 5;
+  private initAttempts = 0;
 
   constructor(
     private route: ActivatedRoute,
@@ -34,35 +35,56 @@ export class RouteMapComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.routeId = Number(this.route.snapshot.paramMap.get('id'));
-    if (this.routeId) {
-      this.loadRouteDetails();
-    }
+    this.initializeRoute();
   }
 
   ngOnDestroy(): void {
     this.mapService.destroy();
   }
 
-  public refreshMap(): void {
-    this.error = '';
-    this.initAttempts = 0;
-    this.mapService.destroy();
+  refreshMap(): void {
+    this.resetMapState();
     this.loadRouteData();
   }
 
-  public tryInitMap(): void {
+  tryInitMap(): void {
+    if (this.hasReachedMaxAttempts()) return;
+    if (!this.isMapElementReady()) return;
+
+    this.initializeMap();
+  }
+
+  private initializeRoute(): void {
+    this.routeId = Number(this.route.snapshot.paramMap.get('id'));
+    if (this.routeId) {
+      this.loadRouteDetails();
+    }
+  }
+
+  private resetMapState(): void {
+    this.error = '';
+    this.initAttempts = 0;
+    this.mapService.destroy();
+  }
+
+  private hasReachedMaxAttempts(): boolean {
     if (this.initAttempts >= this.MAX_ATTEMPTS) {
       this.error = 'Failed to initialize map after multiple attempts';
-      return;
+      return true;
     }
+    return false;
+  }
 
+  private isMapElementReady(): boolean {
     if (!this.mapRef?.nativeElement?.offsetHeight) {
       this.initAttempts++;
       setTimeout(() => this.tryInitMap(), 100);
-      return;
+      return false;
     }
+    return true;
+  }
 
+  private initializeMap(): void {
     try {
       this.error = '';
       this.mapService.initMap(this.mapRef.nativeElement);
@@ -70,8 +92,7 @@ export class RouteMapComponent implements OnInit, OnDestroy {
         this.updateMap();
       }
     } catch (error) {
-      console.error('Error initializing map:', error);
-      this.error = 'Failed to initialize map';
+      this.handleMapError(error);
     }
   }
 
@@ -86,29 +107,38 @@ export class RouteMapComponent implements OnInit, OnDestroy {
         this.routeName = route.name;
         this.loadRouteData();
       },
-      error: (err: any) => {
-        this.error = 'Failed to load route details';
-        this.loading = false;
-        console.error('Error loading route details:', err);
+      error: (error: Error) => {
+        this.handleError('Failed to load route details', error);
       }
     });
   }
 
   private loadRouteData(): void {
     this.routeService.getRouteData(this.routeId).subscribe({
-      next: (data) => {
-        this.routeData = data;
-        this.loading = false;
-        this.initAttempts = 0;
-        setTimeout(() => {
-          this.tryInitMap();
-        }, 300);
+      next: (data: IotData[]) => {
+        this.handleRouteDataSuccess(data);
       },
-      error: (err) => {
-        this.error = 'Failed to load route data';
-        this.loading = false;
-        console.error('Error loading route data:', err);
+      error: (error: Error) => {
+        this.handleError('Failed to load route data', error);
       }
     });
+  }
+
+  private handleRouteDataSuccess(data: IotData[]): void {
+    this.routeData = data;
+    this.loading = false;
+    this.initAttempts = 0;
+    setTimeout(() => this.tryInitMap(), 300);
+  }
+
+  private handleError(message: string, error: Error): void {
+    this.error = message;
+    this.loading = false;
+    console.error(`${message}:`, error);
+  }
+
+  private handleMapError(error: unknown): void {
+    console.error('Error initializing map:', error);
+    this.error = 'Failed to initialize map';
   }
 }
