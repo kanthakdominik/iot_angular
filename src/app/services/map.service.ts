@@ -30,7 +30,7 @@ export class MapService {
     return !!this.map;
   }
 
-  updateMapWithData(routeData: IotData[]): void {
+  updateMapWithData(routeData: IotData[], onDeletePoint?: (id: number) => void): void {
     if (!this.map || !routeData.length) return;
 
     this.clearMarkers();
@@ -39,7 +39,7 @@ export class MapService {
     routeData.forEach(point => {
       const latLng = L.latLng(point.latitude, point.longitude);
       coordinates.push(latLng);
-      this.addMarker(point, latLng);
+      this.addMarker(point, latLng, onDeletePoint);
     });
 
     this.drawPath(coordinates);
@@ -51,7 +51,7 @@ export class MapService {
     this.markers = [];
   }
 
-  private addMarker(point: IotData, latLng: L.LatLng): void {
+  private addMarker(point: IotData, latLng: L.LatLng, onDeletePoint?: (id: number) => void): void {
     const marker = L.circleMarker(latLng, {
       radius: 8,
       fillColor: this.getColorForUsv(point.usvPerHour),
@@ -61,11 +61,24 @@ export class MapService {
       fillOpacity: 0.8
     });
 
-    marker.bindPopup(`
-      <strong>USV/Hour:</strong> ${point.usvPerHour}<br>
-      <strong>Location:</strong> ${point.latitude}, ${point.longitude}
-    `);
+    const popupContent = document.createElement('div');
+    popupContent.innerHTML = `
+      <div class="popup-content">
+        <p><strong>USV/Hour:</strong> ${point.usvPerHour}</p>
+        <p><strong>Location:</strong> ${point.latitude}, ${point.longitude}</p>
+        ${onDeletePoint ? `<button class="delete-point-btn" title="Delete point"><i class="fas fa-trash"></i></button>` : ''}
+      </div>
+    `;
 
+    if (onDeletePoint) {
+      const deleteBtn = popupContent.querySelector('.delete-point-btn');
+      deleteBtn?.addEventListener('click', () => {
+        marker.closePopup();
+        onDeletePoint(point.id);
+      });
+    }
+
+    marker.bindPopup(popupContent);
     marker.addTo(this.map);
     this.markers.push(marker);
   }

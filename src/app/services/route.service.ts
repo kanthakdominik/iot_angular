@@ -30,4 +30,8 @@ export class RouteService {
     const body: RouteNameUpdate = { newName };
     return this.http.put<void>(`${this.apiUrl}/routes/${routeId}/name`, body);
   }
+
+  deleteIotDataPoint(routeId: number, iotDataId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${routeId}/data/${iotDataId}`);
+  }
 }

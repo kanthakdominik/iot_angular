@@ -97,7 +97,11 @@ export class RouteMapComponent implements OnInit, OnDestroy {
   }
 
   private updateMap(): void {
-    this.mapService.updateMapWithData(this.routeData);
+    this.mapService.updateMapWithData(this.routeData, (pointId: number) => {
+      if (confirm('Are you sure you want to delete this point?')) {
+        this.deleteDataPoint(pointId);
+      }
+    });
   }
 
   private loadRouteDetails(): void {
@@ -140,5 +144,21 @@ export class RouteMapComponent implements OnInit, OnDestroy {
   private handleMapError(error: unknown): void {
     console.error('Error initializing map:', error);
     this.error = 'Failed to initialize map';
+  }
+
+  deleteDataPoint(pointId: number): void {
+    if (confirm('Are you sure you want to delete this point?')) {
+      this.loading = true;
+      this.routeService.deleteIotDataPoint(this.routeId, pointId).subscribe({
+        next: () => {
+          this.routeData = this.routeData.filter(point => point.id !== pointId);
+          this.refreshMap();
+          this.loading = false;
+        },
+        error: (error: Error) => {
+          this.handleError('Failed to delete point', error);
+        }
+      });
+    }
   }
 }

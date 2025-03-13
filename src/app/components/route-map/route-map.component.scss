@@ -136,4 +136,57 @@
     .error {
         color: #dc3545;
     }
+
+    ::ng-deep {
+        .leaflet-popup-content {
+            margin: 8px 12px;
+            min-width: 180px;
+
+            .popup-content {
+                position: relative;
+                padding: 8px 0 40px 0;
+
+                p {
+                    margin: 4px 0;
+                    font-size: 13px;
+                }
+
+                .delete-point-btn {
+                    background-color: #dc3545;
+                    color: white;
+                    border: none;
+                    padding: 6px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    width: 32px;
+                    height: 32px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: background-color 0.2s;
+                    position: absolute;
+                    bottom: 8px;
+                    right: 8px;
+
+                    &:hover {
+                        background-color: #c82333;
+                    }
+
+                    &:active {
+                        background-color: #bd2130;
+                    }
+
+                    i {
+                        font-size: 14px;
+                    }
+                }
+            }
+        }
+
+        .leaflet-popup-content-wrapper {
+            padding: 0 4px 4px 4px;
+            border-radius: 4px;
+        }
+    }
 }
