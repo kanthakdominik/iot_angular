@@ -1,12 +1,14 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { IotData } from '../../models/iot-data.model';
 import { Route } from '../../models/route.model';
 import { MapService } from '../../services/map.service';
 import { RadiationLevelService } from '../../services/radiation-level.service';
 import { RouteService } from '../../services/route.service';
+import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-route-map',
@@ -31,7 +33,8 @@ export class RouteMapComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private routeService: RouteService,
-    private mapService: MapService
+    private mapService: MapService,
+    private modalService: NgbModal
   ) { }
 
   ngOnInit(): void {
@@ -98,9 +101,7 @@ export class RouteMapComponent implements OnInit, OnDestroy {
 
   private updateMap(): void {
     this.mapService.updateMapWithData(this.routeData, (pointId: number) => {
-      if (confirm('Are you sure you want to delete this point?')) {
-        this.deleteDataPoint(pointId);
-      }
+      this.deleteDataPoint(pointId);
     });
   }
 
@@ -147,18 +148,28 @@ export class RouteMapComponent implements OnInit, OnDestroy {
   }
 
   deleteDataPoint(pointId: number): void {
-    if (confirm('Are you sure you want to delete this point?')) {
-      this.loading = true;
-      this.routeService.deleteIotDataPoint(this.routeId, pointId).subscribe({
-        next: () => {
-          this.routeData = this.routeData.filter(point => point.id !== pointId);
-          this.refreshMap();
-          this.loading = false;
-        },
-        error: (error: Error) => {
-          this.handleError('Failed to delete point', error);
-        }
-      });
-    }
+    const modalRef = this.modalService.open(ConfirmDialogComponent, {
+      centered: true,
+      backdrop: 'static'
+    });
+    
+    modalRef.componentInstance.title = 'Delete Point';
+    modalRef.componentInstance.message = 'Are you sure you want to delete this point?';
+
+    modalRef.closed.subscribe(result => {
+      if (result) {
+        this.loading = true;
+        this.routeService.deleteIotDataPoint(this.routeId, pointId).subscribe({
+          next: () => {
+            this.routeData = this.routeData.filter(point => point.id !== pointId);
+            this.refreshMap();
+            this.loading = false;
+          },
+          error: (error: Error) => {
+            this.handleError('Failed to delete point', error);
+          }
+        });
+      }
+    });
   }
 }
