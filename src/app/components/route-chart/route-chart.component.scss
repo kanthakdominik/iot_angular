@@ -40,6 +40,34 @@
         }
     }
 
+    .chart-container {
+        position: relative;
+        height: 60vh;
+        min-height: 600px;
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+        .loading-overlay,
+        .error-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 255, 255, 0.9);
+            z-index: 1;
+        }
+    
+        .error-overlay {
+            color: #dc3545;
+        }
+    }
+
     .content-wrapper {
         display: flex;
         gap: 20px;
