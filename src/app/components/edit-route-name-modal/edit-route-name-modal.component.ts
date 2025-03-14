@@ -2,7 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-import { RouteService } from '../../services/api.service';
+import { ApiService } from '../../services/api.service';
 
 @Component({
   selector: 'app-edit-route-name-modal',
@@ -25,7 +25,7 @@ export class EditRouteNameModalComponent implements OnInit {
 
   constructor(
     public activeModal: NgbActiveModal,
-    private routeService: RouteService
+    private apiService: ApiService
   ) {}
 
   ngOnInit(): void {
@@ -45,7 +45,7 @@ export class EditRouteNameModalComponent implements OnInit {
 
   private updateRouteName(name: string): void {
     this.loading = true;
-    this.routeService.updateRouteName(this.routeId, name).subscribe({
+    this.apiService.updateRouteName(this.routeId, name).subscribe({
       next: () => {
         this.loading = false;
         this.activeModal.close(name);

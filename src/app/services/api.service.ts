@@ -9,7 +9,7 @@ import { RouteNameUpdate } from '../models/route-name-update.model';
 @Injectable({
   providedIn: 'root'
 })
-export class RouteService {
+export class ApiService {
   private readonly apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) { }
@@ -29,6 +29,10 @@ export class RouteService {
   updateRouteName(routeId: number, newName: string): Observable<void> {
     const body: RouteNameUpdate = { newName };
     return this.http.put<void>(`${this.apiUrl}/routes/${routeId}/name`, body);
+  }
+
+  deleteRoute(routeId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/routes/${routeId}`);
   }
 
   deleteIotDataPoint(routeId: number, iotDataId: number): Observable<any> {

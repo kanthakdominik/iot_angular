@@ -3,9 +3,10 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
-import { RouteService } from '../../services/api.service';
+import { ApiService } from '../../services/api.service';
 import { Route } from '../../models/route.model';
 import { EditRouteNameModalComponent } from '../edit-route-name-modal/edit-route-name-modal.component';
+import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-route-list',
@@ -20,7 +21,7 @@ export class RouteListComponent implements OnInit {
   error = '';
 
   constructor(
-    private routeService: RouteService,
+    private apiService: ApiService,
     private modalService: NgbModal
   ) { }
 
@@ -39,13 +40,40 @@ export class RouteListComponent implements OnInit {
     );
   }
 
+  deleteRoute(route: Route): void {
+    const modalRef = this.modalService.open(ConfirmDialogComponent, {
+      centered: true,
+      backdrop: 'static'
+    });
+    
+    modalRef.componentInstance.title = 'Delete Route';
+    modalRef.componentInstance.message = `Are you sure you want to delete route "${route.name}"? This will also delete all associated data points.`;
+
+    modalRef.closed.subscribe(result => {
+      if (result) {
+        this.loading = true;
+        this.apiService.deleteRoute(route.id).subscribe({
+          next: () => {
+            this.routes = this.routes.filter(r => r.id !== route.id);
+            this.loading = false;
+          },
+          error: (error: Error) => {
+            this.error = 'Failed to delete route';
+            this.loading = false;
+            console.error('Error deleting route:', error);
+          }
+        });
+      }
+    });
+  }
+
   private updateRouteName(route: Route, newName: string): void {
     route.name = newName;
   }
 
   private loadRoutes(): void {
     this.loading = true;
-    this.routeService.getAllRoutes().subscribe({
+    this.apiService.getAllRoutes().subscribe({
       next: (routes: Route[]) => {
         this.routes = routes;
         this.loading = false;

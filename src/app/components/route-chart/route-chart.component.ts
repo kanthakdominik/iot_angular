@@ -5,7 +5,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { IotData } from '../../models/iot-data.model';
 import { Route } from '../../models/route.model';
-import { RouteService } from '../../services/api.service';
+import { ApiService } from '../../services/api.service';
 import { ChartService } from '../../services/chart.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
@@ -29,7 +29,7 @@ export class RouteChartComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private routeService: RouteService,
+    private apiService: ApiService,
     private chartService: ChartService,
     private modalService: NgbModal
   ) { }
@@ -51,7 +51,7 @@ export class RouteChartComponent implements OnInit {
 
   private loadRouteDetails(): void {
     this.loading = true;
-    this.routeService.getRoute(this.routeId).subscribe({
+    this.apiService.getRoute(this.routeId).subscribe({
       next: (route: Route) => {
         this.routeName = route.name;
         this.loadRouteData();
@@ -63,7 +63,7 @@ export class RouteChartComponent implements OnInit {
   }
 
   private loadRouteData(): void {
-    this.routeService.getRouteData(this.routeId).subscribe({
+    this.apiService.getRouteData(this.routeId).subscribe({
       next: (data) => {
         this.routeData = data;
         this.loading = false;
@@ -103,7 +103,7 @@ export class RouteChartComponent implements OnInit {
     modalRef.closed.subscribe(result => {
       if (result) {
         this.loading = true;
-        this.routeService.deleteIotDataPoint(this.routeId, pointId).subscribe({
+        this.apiService.deleteIotDataPoint(this.routeId, pointId).subscribe({
           next: () => {
             this.routeData = this.routeData.filter(point => point.id !== pointId);
             this.initCharts();

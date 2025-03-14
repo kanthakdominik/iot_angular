@@ -15,6 +15,9 @@
             <button class="edit-button" (click)="editRouteName(route)" title="Edit Route Name">
                 <span class="material-icons">edit</span>
             </button>
+            <button class="delete-button" (click)="deleteRoute(route)" title="Delete Route">
+                <span class="material-icons">delete</span>
+            </button>
             <button [routerLink]="['/routes', route.id, 'map']" class="view-button">
                 View Map
             </button>

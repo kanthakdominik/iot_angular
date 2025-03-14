@@ -7,7 +7,7 @@ import { IotData } from '../../models/iot-data.model';
 import { Route } from '../../models/route.model';
 import { MapService } from '../../services/map.service';
 import { RadiationLevelService } from '../../services/radiation-legend.service';
-import { RouteService } from '../../services/api.service';
+import { ApiService } from '../../services/api.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
 @Component({
@@ -32,7 +32,7 @@ export class RouteMapComponent implements OnInit, OnDestroy {
 
   constructor(
     private route: ActivatedRoute,
-    private routeService: RouteService,
+    private apiService: ApiService,
     private mapService: MapService,
     private modalService: NgbModal
   ) { }
@@ -107,7 +107,7 @@ export class RouteMapComponent implements OnInit, OnDestroy {
 
   private loadRouteDetails(): void {
     this.loading = true;
-    this.routeService.getRoute(this.routeId).subscribe({
+    this.apiService.getRoute(this.routeId).subscribe({
       next: (route: Route) => {
         this.routeName = route.name;
         this.loadRouteData();
@@ -119,7 +119,7 @@ export class RouteMapComponent implements OnInit, OnDestroy {
   }
 
   private loadRouteData(): void {
-    this.routeService.getRouteData(this.routeId).subscribe({
+    this.apiService.getRouteData(this.routeId).subscribe({
       next: (data: IotData[]) => {
         this.handleRouteDataSuccess(data);
       },
@@ -159,7 +159,7 @@ export class RouteMapComponent implements OnInit, OnDestroy {
     modalRef.closed.subscribe(result => {
       if (result) {
         this.loading = true;
-        this.routeService.deleteIotDataPoint(this.routeId, pointId).subscribe({
+        this.apiService.deleteIotDataPoint(this.routeId, pointId).subscribe({
           next: () => {
             this.routeData = this.routeData.filter(point => point.id !== pointId);
             this.refreshMap();

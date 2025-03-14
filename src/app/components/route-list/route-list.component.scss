@@ -62,6 +62,29 @@
         }
     }
 
+    .delete-button {
+        padding: 4px;
+        background: none;
+        border: none;
+        color: #dc3545;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background-color 0.2s;
+        margin-right: 8px;
+
+        &:hover {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: #c82333;
+        }
+
+        .material-icons {
+            font-size: 20px;
+        }
+    }
+
     .view-button {
         padding: 8px 16px;
         background-color: #007bff;
