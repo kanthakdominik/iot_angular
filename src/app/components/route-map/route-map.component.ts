@@ -6,8 +6,8 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { IotData } from '../../models/iot-data.model';
 import { Route } from '../../models/route.model';
 import { MapService } from '../../services/map.service';
-import { RadiationLevelService } from '../../services/radiation-level.service';
-import { RouteService } from '../../services/route.service';
+import { RadiationLevelService } from '../../services/radiation-legend.service';
+import { RouteService } from '../../services/api.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
 @Component({

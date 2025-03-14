@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import * as L from 'leaflet';
 import { IotData } from '../models/iot-data.model';
-import { RadiationLevelService } from './radiation-level.service';
+import { RadiationLevelService } from './radiation-legend.service';
 
 @Injectable({
   providedIn: 'root'

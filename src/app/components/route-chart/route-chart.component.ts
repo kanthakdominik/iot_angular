@@ -1,12 +1,13 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { Chart } from 'chart.js';
-import 'chart.js/auto';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { IotData } from '../../models/iot-data.model';
 import { Route } from '../../models/route.model';
-import { RouteService } from '../../services/route.service';
+import { RouteService } from '../../services/api.service';
+import { ChartService } from '../../services/chart.service';
+import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-route-chart',
@@ -25,16 +26,20 @@ export class RouteChartComponent implements OnInit {
 
   private routeId!: number;
   private routeData: IotData[] = [];
-  private chart: Chart | undefined;
-  private chartCpm: Chart | undefined;
 
   constructor(
     private route: ActivatedRoute,
-    private routeService: RouteService
+    private routeService: RouteService,
+    private chartService: ChartService,
+    private modalService: NgbModal
   ) { }
 
   ngOnInit(): void {
     this.initializeRouteId();
+  }
+
+  ngOnDestroy(): void {
+    this.chartService.destroy();
   }
 
   private initializeRouteId(): void {
@@ -63,7 +68,7 @@ export class RouteChartComponent implements OnInit {
         this.routeData = data;
         this.loading = false;
         if (this.chartCanvas) {
-          this.initChart();
+          this.initCharts();
         }
       },
       error: (err) => {
@@ -72,82 +77,44 @@ export class RouteChartComponent implements OnInit {
     });
   }
 
-  private initChart(): void {
-    this.initRadiationChart();
-    this.initCpmChart();
+  private initCharts(): void {
+    this.chartService.initRadiationChart(
+      this.chartCanvas.nativeElement, 
+      this.routeData,
+      (pointId) => this.deleteDataPoint(pointId)
+    );
+    
+    this.chartService.initCpmChart(
+      this.chartCanvasCpm.nativeElement, 
+      this.routeData,
+      (pointId) => this.deleteDataPoint(pointId)
+    );
   }
 
-  private initRadiationChart(): void {
-    const ctx = this.chartCanvas.nativeElement.getContext('2d');
-    if (!ctx) return;
-
-    this.chart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: this.getTimeLabels(),
-        datasets: [{
-          label: 'Radiation Level (µSv/h)',
-          data: this.routeData.map(d => d.usvPerHour),
-          borderColor: 'rgb(255, 99, 132)',
-          backgroundColor: 'rgba(255, 99, 132, 0.2)',
-          tension: 0.1,
-          fill: true
-        }]
-      },
-      options: this.getChartOptions('Radiation Level (µSv/h)')
+  private deleteDataPoint(pointId: number): void {
+    const modalRef = this.modalService.open(ConfirmDialogComponent, {
+      centered: true,
+      backdrop: 'static'
     });
-  }
+    
+    modalRef.componentInstance.title = 'Delete Point';
+    modalRef.componentInstance.message = 'Are you sure you want to delete this point?';
 
-  private initCpmChart(): void {
-    const ctxCpm = this.chartCanvasCpm.nativeElement.getContext('2d');
-    if (!ctxCpm) return;
-
-    this.chartCpm = new Chart(ctxCpm, {
-      type: 'line',
-      data: {
-        labels: this.getTimeLabels(),
-        datasets: [{
-          label: 'Counts Per Minute (CPM)',
-          data: this.routeData.map(d => d.cpm),
-          borderColor: 'rgb(54, 162, 235)',
-          backgroundColor: 'rgba(54, 162, 235, 0.2)',
-          tension: 0.1,
-          fill: true
-        }]
-      },
-      options: this.getChartOptions('Counts Per Minute (CPM)')
-    });
-  }
-
-  private getTimeLabels(): string[] {
-    return this.routeData.map(d => new Date(d.timestamp).toLocaleTimeString());
-  }
-
-  private getChartOptions(yAxisLabel: string): any {
-    return {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: yAxisLabel
-          }
-        },
-        x: {
-          title: {
-            display: true,
-            text: 'Time'
+    modalRef.closed.subscribe(result => {
+      if (result) {
+        this.loading = true;
+        this.routeService.deleteIotDataPoint(this.routeId, pointId).subscribe({
+          next: () => {
+            this.routeData = this.routeData.filter(point => point.id !== pointId);
+            this.initCharts();
+            this.loading = false;
           },
-          ticks: {
-            maxTicksLimit: 15,
-            maxRotation: 45,
-            autoSkip: true,
+          error: (error: Error) => {
+            this.handleError('Failed to delete point', error);
           }
-        }
+        });
       }
-    };
+    });
   }
 
   private handleError(message: string, error: any): void {

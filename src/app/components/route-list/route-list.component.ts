@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
-import { RouteService } from '../../services/route.service';
+import { RouteService } from '../../services/api.service';
 import { Route } from '../../models/route.model';
 import { EditRouteNameModalComponent } from '../edit-route-name-modal/edit-route-name-modal.component';
 
