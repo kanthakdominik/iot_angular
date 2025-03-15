@@ -1,0 +1,48 @@
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center" routerLink="/">
+      <img src="assets/logo.png" alt="IoT Logo" class="nav-logo me-2">
+      <span>IoT Route Manager</span>
+    </a>
+
+    <button class="navbar-toggler" type="button" (click)="isMenuCollapsed = !isMenuCollapsed">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" [ngbCollapse]="isMenuCollapsed">
+      <form class="d-flex mx-auto search-form">
+        <div class="input-group">
+          <span class="input-group-text bg-transparent border-end-0">
+            <i class="material-icons">search</i>
+          </span>
+          <input 
+            type="search" 
+            class="form-control border-start-0" 
+            [(ngModel)]="searchQuery"
+            name="search"
+            placeholder="Search routes..."
+            (input)="onSearch()"
+          >
+        </div>
+      </form>
+
+      <div class="ms-auto">
+        <button *ngIf="!isLoggedIn" 
+                class="btn btn-primary" 
+                type="button" 
+                (click)="login()">
+          <i class="material-icons align-middle">login</i>
+          <span class="ms-1">Login</span>
+        </button>
+
+        <button *ngIf="isLoggedIn" 
+                class="btn btn-outline-primary" 
+                type="button"
+                (click)="logout()">
+          <i class="material-icons align-middle">logout</i>
+          <span class="ms-1">Logout</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>

@@ -1,6 +1,4 @@
 <div class="route-list">
-    <h2>Routes</h2>
-
     <div *ngIf="loading" class="loading">
         Loading routes...
     </div>
@@ -11,18 +9,22 @@
 
     <div *ngIf="!loading && !error" class="routes-container">
         <div *ngFor="let route of routes" class="route-item">
-            <span class="route-name">{{ route.name }}</span>
-            <button class="edit-button" (click)="editRouteName(route)" title="Edit Route Name">
-                <span class="material-icons">edit</span>
+            <div class="route-name">
+                {{ route.name }}
+                <button class="edit-button" (click)="editRouteName(route)" title="Edit Route Name">
+                    <span class="material-icons">edit</span>
+                </button>
+            </div>
+            <button [routerLink]="['/routes', route.id, 'map']" class="view-button">
+                <span class="material-icons">map</span>
+                <span>View Map</span>
+            </button>
+            <button [routerLink]="['/routes', route.id, 'chart']" class="view-button">
+                <span class="material-icons">insert_chart</span>
+                <span>View Chart</span>
             </button>
             <button class="delete-button" (click)="deleteRoute(route)" title="Delete Route">
                 <span class="material-icons">delete</span>
-            </button>
-            <button [routerLink]="['/routes', route.id, 'map']" class="view-button">
-                View Map
-            </button>
-            <button [routerLink]="['/routes', route.id, 'chart']" class="view-button">
-                View Chart
             </button>
         </div>
     </div>
