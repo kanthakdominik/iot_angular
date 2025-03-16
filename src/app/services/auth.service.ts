@@ -31,6 +31,7 @@ export class AuthService {
     return this.apiService.login(credentials).pipe(
       tap((response) => {
         if (response.username) {
+          localStorage.setItem('isLoggedIn', 'true');
           this.currentUserSubject.next(response.username);
         }
       })
@@ -40,6 +41,7 @@ export class AuthService {
   logout(): Observable<{ message: string }> {
     return this.apiService.logout().pipe(
       tap(() => {
+        localStorage.removeItem('isLoggedIn');
         this.currentUserSubject.next(null);
       })
     );
