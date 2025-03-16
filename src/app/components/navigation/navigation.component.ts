@@ -1,10 +1,12 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { NgbCollapseModule } from '@ng-bootstrap/ng-bootstrap';
-import { AuthService } from '../../services/auth.service';
 import { Subscription } from 'rxjs';
+
+import { AuthService } from '../../services/auth.service';
+import { SearchService } from '../../services/search.service';
 
 @Component({
   selector: 'app-navigation',
@@ -19,6 +21,8 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./navigation.component.scss']
 })
 export class NavigationComponent implements OnInit, OnDestroy {
+  @Output() searchEvent = new EventEmitter<string>();
+
   isMenuCollapsed = true;
   searchQuery = '';
   isLoggedIn = false;
@@ -27,6 +31,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
 
   constructor(
     private authService: AuthService,
+    private searchService: SearchService,
     private router: Router
   ) {}
 
@@ -36,11 +41,10 @@ export class NavigationComponent implements OnInit, OnDestroy {
         status => this.isLoggedIn = status
       )
     );
-
     this.subscriptions.add(
-      this.authService.username$.subscribe(
-        username => this.username = username
-      )
+      this.searchService.searchQuery$.subscribe(query => {
+        this.searchQuery = query;
+      })
     );
   }
 
@@ -49,7 +53,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
   }
 
   onSearch(): void {
-    console.log('Searching:', this.searchQuery);
+    this.searchEvent.emit(this.searchQuery);
   }
 
   login(): void {

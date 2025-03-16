@@ -28,14 +28,16 @@
 
       <div class="ms-auto">
         <ng-container *ngIf="!isLoggedIn">
-          <button class="btn btn-primary" type="button" (click)="login()">
+          <button class="btn btn-outline-light" routerLink="/login">
             <i class="material-icons align-middle">login</i>
             <span class="ms-1">Login</span>
           </button>
         </ng-container>
-
         <ng-container *ngIf="isLoggedIn">
-          <span class="me-3 text-light">{{ username }}</span>
+          <span class="me-3 text-light">
+            <i class="material-icons align-middle">person</i>
+            <strong class="ms-1 me-3">{{ username }}</strong>
+          </span>
           <button class="btn btn-outline-light" type="button" (click)="logout()">
             <i class="material-icons align-middle">logout</i>
             <span class="ms-1">Logout</span>
