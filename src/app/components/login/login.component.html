@@ -1,0 +1,21 @@
+<div class="login-container">
+    <div class="login-box">
+        <h2>Login</h2>
+        <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+        <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+            <div class="form-group mb-3">
+                <label for="username">Username</label>
+                <input type="text" class="form-control" id="username" name="username" 
+                    [(ngModel)]="credentials.username" required>
+            </div>
+            <div class="form-group mb-3">
+                <label for="password">Password</label>
+                <input type="password" class="form-control" id="password" name="password"
+                    [(ngModel)]="credentials.password" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100" [disabled]="loading">
+                {{ loading ? 'Logging in...' : 'Login' }}
+            </button>
+        </form>
+    </div>
+</div>

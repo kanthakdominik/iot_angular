@@ -27,21 +27,20 @@
       </form>
 
       <div class="ms-auto">
-        <button *ngIf="!isLoggedIn" 
-                class="btn btn-primary" 
-                type="button" 
-                (click)="login()">
-          <i class="material-icons align-middle">login</i>
-          <span class="ms-1">Login</span>
-        </button>
+        <ng-container *ngIf="!isLoggedIn">
+          <button class="btn btn-primary" type="button" (click)="login()">
+            <i class="material-icons align-middle">login</i>
+            <span class="ms-1">Login</span>
+          </button>
+        </ng-container>
 
-        <button *ngIf="isLoggedIn" 
-                class="btn btn-outline-primary" 
-                type="button"
-                (click)="logout()">
-          <i class="material-icons align-middle">logout</i>
-          <span class="ms-1">Logout</span>
-        </button>
+        <ng-container *ngIf="isLoggedIn">
+          <span class="me-3 text-light">{{ username }}</span>
+          <button class="btn btn-outline-light" type="button" (click)="logout()">
+            <i class="material-icons align-middle">logout</i>
+            <span class="ms-1">Logout</span>
+          </button>
+        </ng-container>
       </div>
     </div>
   </div>
