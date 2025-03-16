@@ -11,10 +11,16 @@ export class AuthService {
   public currentUser$ = this.currentUserSubject.asObservable();
 
   constructor(private apiService: ApiService) {
-    this.checkAuthStatus();
+    if (this.hasValidToken()) {
+      this.fetchCurrentUser();
+    }
   }
 
-  private checkAuthStatus(): void {
+  private hasValidToken(): boolean {
+    return !!localStorage.getItem('isLoggedIn');
+  }
+
+  private fetchCurrentUser(): void {
     this.apiService.getCurrentUser().subscribe({
       next: (response) => this.currentUserSubject.next(response.username),
       error: () => this.currentUserSubject.next(null)

@@ -30,15 +30,18 @@ export class ApiService {
 
   updateRouteName(routeId: number, newName: string): Observable<void> {
     const body: RouteNameUpdate = { newName };
-    return this.http.put<void>(`${this.routesUrl}/${routeId}/name`, body);
+    return this.http.put<void>(`${this.routesUrl}/${routeId}/name`, body, { 
+      withCredentials: true });
   }
 
   deleteRoute(routeId: number): Observable<any> {
-    return this.http.delete(`${this.routesUrl}/${routeId}`);
+    return this.http.delete(`${this.routesUrl}/${routeId}`, { 
+      withCredentials: true });
   }
 
   deleteIotDataPoint(routeId: number, iotDataId: number): Observable<any> {
-    return this.http.delete(`${this.routesUrl}/${routeId}/data/${iotDataId}`);
+    return this.http.delete(`${this.routesUrl}/${routeId}/data/${iotDataId}`, { 
+      withCredentials: true });
   }
 
   login(credentials: Login): Observable<LoginResponse> {
