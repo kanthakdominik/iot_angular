@@ -159,7 +159,6 @@
                     padding: 6px;
                     border-radius: 4px;
                     cursor: pointer;
-                    font-size: 14px;
                     width: 32px;
                     height: 32px;
                     display: flex;
@@ -180,6 +179,7 @@
 
                     i {
                         font-size: 14px;
+                        display: inline-block;
                     }
                 }
             }

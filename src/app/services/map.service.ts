@@ -62,31 +62,50 @@ export class MapService {
     });
 
     const timestamp = new Date(point.timestamp).toLocaleString();
-    const popupContent = document.createElement('div');
-    popupContent.className = 'leaflet-popup-content';
-    popupContent.innerHTML = `
+    const popup = L.popup().setContent(`
       <div class="popup-content">
         <p><strong>Time:</strong> ${timestamp}</p>
         <p><strong>Radiation:</strong> ${point.usvPerHour.toFixed(3)} µSv/h</p>
         <p><strong>CPM:</strong> ${point.cpm}</p>
         <p><strong>Location:</strong> ${point.latitude.toFixed(6)}, ${point.longitude.toFixed(6)}</p>
         ${onDeletePoint ? `
-          <button class="delete-point-btn" title="Delete point">
+          <button type="button" class="delete-point-btn" data-point-id="${point.id}" title="Delete point">
             <i class="fas fa-trash"></i>
           </button>
         ` : ''}
       </div>
-    `;
+    `);
+
+    marker.bindPopup(popup);
 
     if (onDeletePoint) {
-      const deleteBtn = popupContent.querySelector('.delete-point-btn');
-      deleteBtn?.addEventListener('click', () => {
-        marker.closePopup();
-        onDeletePoint(point.id);
+      let clickHandler: ((e: Event) => void) | null = null;
+
+      marker.on('popupopen', () => {
+        const deleteBtn = marker.getPopup()?.getElement()?.querySelector(
+          `.delete-point-btn[data-point-id="${point.id}"]`
+        ) as HTMLElement | null;
+
+        if (deleteBtn) {
+          if (clickHandler) {
+            deleteBtn.removeEventListener('click', clickHandler);
+          }
+
+          clickHandler = (e: Event) => {
+            e.preventDefault();
+            e.stopPropagation();
+            marker.closePopup();
+            onDeletePoint(point.id);
+          };
+          deleteBtn.addEventListener('click', clickHandler);
+        }
+      });
+
+      marker.on('popupclose', () => {
+        clickHandler = null;
       });
     }
 
-    marker.bindPopup(popupContent);
     marker.addTo(this.map);
     this.markers.push(marker);
   }
