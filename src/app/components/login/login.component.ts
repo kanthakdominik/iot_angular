@@ -35,11 +35,16 @@ export class LoginComponent {
     this.error = '';
 
     this.authService.login(this.credentials).subscribe({
-      next: () => {
-        this.router.navigate(['/']);
+      next: (response) => {
+        if (response.username) {
+          this.router.navigate(['/']);
+        } else {
+          this.error = 'Login failed';
+          this.loading = false;
+        }
       },
       error: (error) => {
-        this.error = error.error?.error || 'Login failed';
+        this.error = error.error?.message || 'Invalid credentials';
         this.loading = false;
       }
     });

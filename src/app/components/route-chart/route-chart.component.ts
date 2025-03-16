@@ -2,12 +2,15 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/co
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { Subscription } from 'rxjs';
 
 import { IotData } from '../../models/iot-data.model';
 import { Route } from '../../models/route.model';
 import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
 import { ChartService } from '../../services/chart.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
+
 
 @Component({
   selector: 'app-route-chart',
@@ -16,30 +19,42 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
   templateUrl: './route-chart.component.html',
   styleUrls: ['./route-chart.component.scss']
 })
-export class RouteChartComponent implements OnInit {
+export class RouteChartComponent implements OnInit, OnDestroy {
   @ViewChild('chartCanvas') chartCanvas!: ElementRef<HTMLCanvasElement>;
   @ViewChild('chartCanvasCpm') chartCanvasCpm!: ElementRef<HTMLCanvasElement>;
 
   routeName = '';
   loading = false;
   error = '';
+  isLoggedIn = false;
 
   private routeId!: number;
   private routeData: IotData[] = [];
+  private subscriptions = new Subscription();
 
   constructor(
     private route: ActivatedRoute,
     private apiService: ApiService,
+    private authService: AuthService,
     private chartService: ChartService,
     private modalService: NgbModal
   ) { }
 
   ngOnInit(): void {
     this.initializeRouteId();
+    this.subscriptions.add(
+      this.authService.currentUser$.subscribe(user => {
+        this.isLoggedIn = !!user;
+        if (this.chartCanvas && this.routeData.length > 0) {
+          this.initCharts();
+        }
+      })
+    );
   }
 
   ngOnDestroy(): void {
     this.chartService.destroy();
+    this.subscriptions.unsubscribe();
   }
 
   private initializeRouteId(): void {
@@ -78,20 +93,28 @@ export class RouteChartComponent implements OnInit {
   }
 
   private initCharts(): void {
+    const deleteCallback = this.isLoggedIn 
+      ? (pointId: number) => this.deleteDataPoint(pointId)
+      : undefined;
+
     this.chartService.initRadiationChart(
       this.chartCanvas.nativeElement, 
       this.routeData,
-      (pointId) => this.deleteDataPoint(pointId)
+      deleteCallback
     );
     
     this.chartService.initCpmChart(
       this.chartCanvasCpm.nativeElement, 
       this.routeData,
-      (pointId) => this.deleteDataPoint(pointId)
+      deleteCallback
     );
   }
-
+  
   private deleteDataPoint(pointId: number): void {
+    if (!this.isLoggedIn) {
+      return;
+    }
+
     const modalRef = this.modalService.open(ConfirmDialogComponent, {
       centered: true,
       backdrop: 'static'
@@ -109,7 +132,7 @@ export class RouteChartComponent implements OnInit {
             this.initCharts();
             this.loading = false;
           },
-          error: (error: Error) => {
+          error: (error) => {
             this.handleError('Failed to delete point', error);
           }
         });

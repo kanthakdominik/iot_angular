@@ -10,7 +10,11 @@ export class ChartService {
   private radiationChart: Chart | undefined;
   private cpmChart: Chart | undefined;
 
-  initRadiationChart(canvas: HTMLCanvasElement, data: IotData[], onPointClick: (id: number) => void): void {
+  initRadiationChart(
+    canvas: HTMLCanvasElement, 
+    data: IotData[], 
+    onPointClick?: (id: number) => void
+  ): void {
     if (this.radiationChart) {
       this.radiationChart.destroy();
     }
@@ -35,7 +39,11 @@ export class ChartService {
     });
   }
 
-  initCpmChart(canvas: HTMLCanvasElement, data: IotData[], onPointClick: (id: number) => void): void {
+  initCpmChart(
+    canvas: HTMLCanvasElement, 
+    data: IotData[], 
+    onPointClick?: (id: number) => void
+  ): void {
     if (this.cpmChart) {
       this.cpmChart.destroy();
     }
@@ -73,17 +81,21 @@ export class ChartService {
     return data.map(d => new Date(d.timestamp).toLocaleTimeString());
   }
 
-  private getChartOptions(yAxisLabel: string, data: IotData[], onPointClick: (id: number) => void): ChartOptions {
+  private getChartOptions(
+    yAxisLabel: string, 
+    data: IotData[], 
+    onPointClick?: (id: number) => void
+  ): ChartOptions {
     return {
       responsive: true,
       maintainAspectRatio: false,
-      onClick: (event: any, elements: any[]) => {
+      onClick: onPointClick ? (event: any, elements: any[]) => {
         if (elements.length > 0) {
           const index = elements[0].index;
           const pointId = data[index].id;
           onPointClick(pointId);
         }
-      },
+      } : undefined,
       interaction: {
         intersect: true,
         mode: 'nearest'
@@ -91,7 +103,7 @@ export class ChartService {
       plugins: {
         tooltip: {
           callbacks: {
-            footer: () => 'Click to delete this point'
+            footer: onPointClick ? () => 'Click to delete this point' : undefined
           }
         }
       },

@@ -36,9 +36,10 @@ export class RouteListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadRoutes();
-    this.filteredRoutes = this.routes;
-    this.authService.isLoggedIn$.subscribe(
-      isLoggedIn => this.isLoggedIn = isLoggedIn
+    this.subscriptions.add(
+      this.authService.currentUser$.subscribe(user => {
+        this.isLoggedIn = !!user;
+      })
     );
     this.subscriptions.add(
       this.searchService.searchQuery$.subscribe(query => {
@@ -57,7 +58,7 @@ export class RouteListComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.filteredRoutes = this.routes.filter(route => 
+    this.filteredRoutes = this.routes.filter(route =>
       route.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }
@@ -72,7 +73,17 @@ export class RouteListComponent implements OnInit, OnDestroy {
     modalRef.componentInstance.routeId = route.id;
 
     modalRef.result.then(
-      (newName: string) => this.updateRouteName(route, newName),
+      (newName: string) => {
+        this.apiService.updateRouteName(route.id, newName).subscribe({
+          next: () => {
+            route.name = newName;
+          },
+          error: (error) => {
+            this.error = 'Failed to update route name';
+            console.error('Error updating route name:', error);
+          }
+        });
+      },
       () => void 0
     );
   }
@@ -86,7 +97,7 @@ export class RouteListComponent implements OnInit, OnDestroy {
       centered: true,
       backdrop: 'static'
     });
-    
+
     modalRef.componentInstance.title = 'Delete Route';
     modalRef.componentInstance.message = `Are you sure you want to delete route "${route.name}"? This will also delete all associated data points.`;
 
@@ -96,9 +107,10 @@ export class RouteListComponent implements OnInit, OnDestroy {
         this.apiService.deleteRoute(route.id).subscribe({
           next: () => {
             this.routes = this.routes.filter(r => r.id !== route.id);
+            this.filteredRoutes = this.filteredRoutes.filter(r => r.id !== route.id);
             this.loading = false;
           },
-          error: (error: Error) => {
+          error: (error) => {
             this.error = 'Failed to delete route';
             this.loading = false;
             console.error('Error deleting route:', error);
@@ -106,10 +118,6 @@ export class RouteListComponent implements OnInit, OnDestroy {
         });
       }
     });
-  }
-
-  private updateRouteName(route: Route, newName: string): void {
-    route.name = newName;
   }
 
   private loadRoutes(): void {
@@ -120,7 +128,7 @@ export class RouteListComponent implements OnInit, OnDestroy {
         this.filteredRoutes = routes;
         this.loading = false;
       },
-      error: (error: Error) => {
+      error: (error) => {
         this.error = 'Failed to load routes';
         this.loading = false;
         console.error('Error loading routes:', error);

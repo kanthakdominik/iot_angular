@@ -19,20 +19,22 @@ export class EditRouteNameModalComponent implements OnInit {
   error = '';
   loading = false;
 
-  private readonly NAME_MIN_LENGTH = 3;
-  private readonly NAME_MAX_LENGTH = 50;
-  private readonly NAME_PATTERN = /^[a-zA-Z0-9\s\-_.,()]+$/;
+  readonly NAME_MIN_LENGTH = 3;
+  readonly NAME_MAX_LENGTH = 50;
+  readonly NAME_PATTERN = /^[a-zA-Z0-9\s\-_.,()]+$/;
 
   constructor(
     public activeModal: NgbActiveModal,
     private apiService: ApiService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.newName = this.currentName;
   }
 
   onSave(): void {
+    if (this.loading) return;
+
     const trimmedName = this.newName.trim();
     if (this.isValidRouteName(trimmedName)) {
       this.updateRouteName(trimmedName);
@@ -45,19 +47,25 @@ export class EditRouteNameModalComponent implements OnInit {
 
   private updateRouteName(name: string): void {
     this.loading = true;
+    this.error = '';
+
     this.apiService.updateRouteName(this.routeId, name).subscribe({
       next: () => {
-        this.loading = false;
         this.activeModal.close(name);
       },
-      error: () => {
+      error: (error) => {
         this.loading = false;
-        this.error = 'Failed to rename the route';
+        this.error = error.error?.message || 'Failed to rename the route';
       }
     });
   }
 
   private isValidRouteName(name: string): boolean {
+    if (!name) {
+      this.error = 'Route name is required';
+      return false;
+    }
+
     if (name.length < this.NAME_MIN_LENGTH || name.length > this.NAME_MAX_LENGTH) {
       this.error = `Route name must be between ${this.NAME_MIN_LENGTH} and ${this.NAME_MAX_LENGTH} characters`;
       return false;

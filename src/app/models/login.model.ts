@@ -6,4 +6,5 @@ export interface Login {
 export interface LoginResponse {
     message: string;
     username: string;
+    sessionId: string;
 } 

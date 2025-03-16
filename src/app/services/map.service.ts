@@ -61,12 +61,20 @@ export class MapService {
       fillOpacity: 0.8
     });
 
+    const timestamp = new Date(point.timestamp).toLocaleString();
     const popupContent = document.createElement('div');
+    popupContent.className = 'leaflet-popup-content';
     popupContent.innerHTML = `
       <div class="popup-content">
-        <p><strong>USV/Hour:</strong> ${point.usvPerHour}</p>
-        <p><strong>Location:</strong> ${point.latitude}, ${point.longitude}</p>
-        ${onDeletePoint ? `<button class="delete-point-btn" title="Delete point"><i class="fas fa-trash"></i></button>` : ''}
+        <p><strong>Time:</strong> ${timestamp}</p>
+        <p><strong>Radiation:</strong> ${point.usvPerHour.toFixed(3)} µSv/h</p>
+        <p><strong>CPM:</strong> ${point.cpm}</p>
+        <p><strong>Location:</strong> ${point.latitude.toFixed(6)}, ${point.longitude.toFixed(6)}</p>
+        ${onDeletePoint ? `
+          <button class="delete-point-btn" title="Delete point">
+            <i class="fas fa-trash"></i>
+          </button>
+        ` : ''}
       </div>
     `;
 

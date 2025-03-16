@@ -2,13 +2,16 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/co
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { Subscription } from 'rxjs';
 
 import { IotData } from '../../models/iot-data.model';
 import { Route } from '../../models/route.model';
 import { MapService } from '../../services/map.service';
 import { RadiationLevelService } from '../../services/radiation-legend.service';
 import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
+
 
 @Component({
   selector: 'app-route-map',
@@ -25,8 +28,10 @@ export class RouteMapComponent implements OnInit, OnDestroy {
   routeData: IotData[] = [];
   loading = false;
   error = '';
-  readonly legendItems = RadiationLevelService.legendItems;
+  isLoggedIn = false;
 
+  readonly legendItems = RadiationLevelService.legendItems;
+  private subscriptions = new Subscription();
   private readonly MAX_ATTEMPTS = 5;
   private initAttempts = 0;
 
@@ -34,15 +39,25 @@ export class RouteMapComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private apiService: ApiService,
     private mapService: MapService,
-    private modalService: NgbModal
+    private modalService: NgbModal,
+    private authService: AuthService
   ) { }
 
   ngOnInit(): void {
     this.initializeRoute();
+    this.subscriptions.add(
+      this.authService.currentUser$.subscribe(user => {
+        this.isLoggedIn = !!user;
+        if (this.routeData.length > 0) {
+          this.updateMap();
+        }
+      })
+    );
   }
 
   ngOnDestroy(): void {
     this.mapService.destroy();
+    this.subscriptions.unsubscribe();
   }
 
   refreshMap(): void {
@@ -100,9 +115,11 @@ export class RouteMapComponent implements OnInit, OnDestroy {
   }
 
   private updateMap(): void {
-    this.mapService.updateMapWithData(this.routeData, (pointId: number) => {
-      this.deleteDataPoint(pointId);
-    });
+    const deleteCallback = this.isLoggedIn 
+      ? (pointId: number) => this.deleteDataPoint(pointId)
+      : undefined;
+    
+    this.mapService.updateMapWithData(this.routeData, deleteCallback);
   }
 
   private loadRouteDetails(): void {
@@ -148,6 +165,10 @@ export class RouteMapComponent implements OnInit, OnDestroy {
   }
 
   deleteDataPoint(pointId: number): void {
+    if (!this.isLoggedIn) {
+      return;
+    }
+
     const modalRef = this.modalService.open(ConfirmDialogComponent, {
       centered: true,
       backdrop: 'static'

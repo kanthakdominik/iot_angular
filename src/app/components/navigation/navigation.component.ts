@@ -26,7 +26,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
   isMenuCollapsed = true;
   searchQuery = '';
   isLoggedIn = false;
-  username = '';
+  username: string | null = null;
   private subscriptions = new Subscription();
 
   constructor(
@@ -37,10 +37,14 @@ export class NavigationComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.subscriptions.add(
-      this.authService.isLoggedIn$.subscribe(
-        status => this.isLoggedIn = status
+      this.authService.currentUser$.subscribe(
+        username => {
+          this.isLoggedIn = !!username;
+          this.username = username;
+        }
       )
     );
+
     this.subscriptions.add(
       this.searchService.searchQuery$.subscribe(query => {
         this.searchQuery = query;
@@ -53,7 +57,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
   }
 
   onSearch(): void {
-    this.searchEvent.emit(this.searchQuery);
+    this.searchService.setSearchQuery(this.searchQuery);
   }
 
   login(): void {
@@ -61,7 +65,13 @@ export class NavigationComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/']);
+    this.authService.logout().subscribe({
+      next: () => {
+        this.router.navigate(['/']);
+      },
+      error: (error) => {
+        console.error('Logout failed:', error);
+      }
+    });
   }
 }
