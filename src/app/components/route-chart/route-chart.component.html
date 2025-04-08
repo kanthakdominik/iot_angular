@@ -2,6 +2,9 @@
     <div class="header">
         <div class="title-section">
             <h2>{{routeName}}</h2>
+            <button (click)="refreshData()" class="refresh-button" title="Refresh Data">
+                <span class="material-icons">refresh</span>
+            </button>
         </div>
         <div class="header-buttons">
             <button [routerLink]="['/routes']" class="back-button">Back to List</button>

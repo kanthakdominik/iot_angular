@@ -57,6 +57,11 @@ export class RouteChartComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
+  public refreshData(): void {
+    this.loading = true;
+    this.loadRouteData();
+  }
+
   private initializeRouteId(): void {
     this.routeId = Number(this.route.snapshot.paramMap.get('id'));
     if (this.routeId) {
