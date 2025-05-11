@@ -104,14 +104,19 @@ export class RouteMapComponent implements OnInit, OnDestroy {
 
   private initializeMap(): void {
     try {
-      this.error = '';
-      this.mapService.initMap(this.mapRef.nativeElement);
+      this.error = '';      
+      const map = this.mapService.initMap(this.mapRef.nativeElement);
+      
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 300);
+
       if (this.routeData.length > 0) {
-        this.updateMap();
+          this.updateMap();
+        }
+      } catch (error) {
+        this.handleMapError(error);
       }
-    } catch (error) {
-      this.handleMapError(error);
-    }
   }
 
   private updateMap(): void {
