@@ -5,44 +5,42 @@ import { Injectable } from '@angular/core';
 })
 export class RadiationLevelService {
   static readonly legendItems = [
-    { range: '≤ 0.05', color: '#00FF00', label: 'Minimum Background' },
-    { range: '0.06-0.09', color: '#80FF00', label: 'Very Low' },
-    { range: '0.10-0.13', color: '#FFFF00', label: 'Normal Background' },
-    { range: '0.14-0.19', color: '#FFBF00', label: 'Elevated' },
-    { range: '0.20-0.25', color: '#FF7F00', label: 'Moderate' },
-    { range: '0.26-0.29', color: '#FF0000', label: 'High' },
-    { range: '0.30-0.35', color: '#BF0000', label: 'Very High' },
-    { range: '0.36-0.41', color: '#400080', label: 'Extreme' },
-    { range: '0.42-0.47', color: '#A000A0', label: 'Severe' },
-    { range: '> 0.47', color: '#FF00FF', label: 'Dangerous' }
+    { range: '≤ 0.02', color: '#005500' },
+    { range: '0.03-0.04', color: '#007700' },
+    { range: '0.05-0.06', color: '#009900' },
+    { range: '0.07-0.08', color: '#00BB00' },
+    { range: '0.09-0.10', color: '#00DD00' },
+    { range: '0.11-0.12', color: '#88EE00' },
+    { range: '0.13-0.14', color: '#EEEE00' },
+    { range: '0.15-0.16', color: '#FFCC00' },
+    { range: '0.17-0.18', color: '#FFAA00' },
+    { range: '0.19-0.20', color: '#FF8800' },
+    { range: '0.21-0.22', color: '#FF5500' },
+    { range: '0.23-0.24', color: '#DD2200' },
+    { range: '0.25-0.26', color: '#CC0000' },
+    { range: '0.27-0.28', color: '#AA0000' },
+    { range: '0.29-0.30', color: '#800000' },
+    { range: '> 0.30', color: '#800000' }
   ];
 
   static getColorForUsv(usv: number): string {
     const levels = [
-      { threshold: 0.05, color: '#00FF00' },
-      { threshold: 0.07, color: '#40FF00' },
-      { threshold: 0.09, color: '#80FF00' },
-      { threshold: 0.11, color: '#BFFF00' },
-      { threshold: 0.13, color: '#FFFF00' },
-      { threshold: 0.15, color: '#FFDF00' },
-      { threshold: 0.17, color: '#FFBF00' },
-      { threshold: 0.19, color: '#FF9F00' },
-      { threshold: 0.21, color: '#FF7F00' },
-      { threshold: 0.23, color: '#FF5F00' },
-      { threshold: 0.25, color: '#FF3F00' },
-      { threshold: 0.27, color: '#FF1F00' },
-      { threshold: 0.29, color: '#FF0000' },
-      { threshold: 0.31, color: '#DF0000' },
-      { threshold: 0.33, color: '#BF0000' },
-      { threshold: 0.35, color: '#9F0000' },
-      { threshold: 0.37, color: '#7F0000' },
-      { threshold: 0.39, color: '#5F0000' },
-      { threshold: 0.41, color: '#400080' },
-      { threshold: 0.43, color: '#600080' },
-      { threshold: 0.45, color: '#800080' },
-      { threshold: 0.47, color: '#A000A0' },
-      { threshold: 0.49, color: '#C000C0' },
-      { threshold: Infinity, color: '#FF00FF' }
+      { threshold: 0.02, color: '#005500' }, // Bardzo ciemny zielony
+      { threshold: 0.04, color: '#007700' },
+      { threshold: 0.06, color: '#009900' }, // Ciemny zielony
+      { threshold: 0.08, color: '#00BB00' },
+      { threshold: 0.10, color: '#00DD00' }, // Zielony
+      { threshold: 0.12, color: '#88EE00' }, // Żółto-zielony
+      { threshold: 0.14, color: '#EEEE00' }, // Żółty
+      { threshold: 0.16, color: '#FFCC00' }, // Ciemny żółty
+      { threshold: 0.18, color: '#FFAA00' }, // Jasny pomarańcz
+      { threshold: 0.20, color: '#FF8800' }, // Pomarańczowy
+      { threshold: 0.22, color: '#FF5500' }, // Ciemny pomarańcz
+      { threshold: 0.24, color: '#DD2200' }, // Czerwono-pomarańczowy
+      { threshold: 0.26, color: '#CC0000' }, // Czerwony
+      { threshold: 0.28, color: '#AA0000' }, // Ciemny czerwony
+      { threshold: 0.30, color: '#800000' }, // Bordowy
+      { threshold: Infinity, color: '#800000' } // Max
     ];
 
     for (const level of levels) {

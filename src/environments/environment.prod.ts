@@ -1,4 +1,4 @@
 export const environment = {
     production: false,
-    apiUrl: 'https://EC2_PUBLIC_URL/api'
+    apiUrl: 'https://api.iot-manager.click/api'
 };

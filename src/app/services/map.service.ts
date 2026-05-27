@@ -9,7 +9,6 @@ import { RadiationLevelService } from './radiation-legend.service';
 export class MapService {
   private map!: L.Map;
   private markers: L.CircleMarker[] = [];
-  private polyline: L.Polyline | null = null;
 
   initMap(element: HTMLElement): L.Map {
     this.destroy();
@@ -17,7 +16,8 @@ export class MapService {
     this.map = L.map(element, {
       minZoom: 2,
       maxZoom: 18,
-      zoomControl: true
+      zoomControl: true,
+      attributionControl: false
     }).setView([0, 0], 2);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -42,7 +42,6 @@ export class MapService {
       this.addMarker(point, latLng, onDeletePoint);
     });
 
-    this.drawPath(coordinates);
     this.map.fitBounds(L.latLngBounds(coordinates));
   }
 
@@ -55,7 +54,7 @@ export class MapService {
     const marker = L.circleMarker(latLng, {
       radius: 8,
       fillColor: this.getColorForUsv(point.usvPerHour),
-      color: '#000',
+      color: '#transparent',
       weight: 1,
       opacity: 1,
       fillOpacity: 0.8
@@ -110,26 +109,8 @@ export class MapService {
     this.markers.push(marker);
   }
 
-  private drawPath(coordinates: L.LatLng[]): void {
-    if (this.polyline) {
-      this.polyline.remove();
-    }
-
-    if (coordinates.length > 0) {
-      L.polyline(coordinates, {
-        color: '#0066cc',
-        weight: 3,
-        opacity: 0.6
-      }).addTo(this.map);
-    }
-  }
-
   destroy(): void {
     this.clearMarkers();
-    if (this.polyline) {
-      this.polyline.remove();
-      this.polyline = null;
-    }
     if (this.map) {
       this.map.remove();
       this.map = undefined as any;
