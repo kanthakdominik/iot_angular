@@ -1,31 +1,59 @@
 <div class="route-list">
-    <div *ngIf="loading" class="loading">
-        Loading routes...
-    </div>
+    <app-device-panel [isAdmin]="isAdmin" (commandSent)="onDeviceCommand()"></app-device-panel>
 
-    <div *ngIf="error" class="error">
-        {{ error }}
-    </div>
+    @if (loading) {
+        <div class="loading">Loading routes...</div>
+    }
+    @if (error) {
+        <div class="error">{{ error }}</div>
+    }
 
-    <div *ngIf="!loading && !error" class="routes-container">
-        <div *ngFor="let route of filteredRoutes" class="route-item">
-            <div class="route-name">
-                {{ route.name }}
-                <button *ngIf="isLoggedIn" class="edit-button" (click)="editRouteName(route)" title="Edit Route Name">
-                    <span class="material-icons">edit</span>
-                </button>
-            </div>
-            <button [routerLink]="['/routes', route.id, 'map']" class="view-button">
-                <span class="material-icons">map</span>
-                <span>View Map</span>
-            </button>
-            <button [routerLink]="['/routes', route.id, 'chart']" class="view-button">
-                <span class="material-icons">insert_chart</span>
-                <span>View Chart</span>
-            </button>
-            <button *ngIf="isLoggedIn" class="delete-button" (click)="deleteRoute(route)" title="Delete Route">
-                <span class="material-icons">delete</span>
-            </button>
+    @if (!loading) {
+        <div class="routes-container">
+            @for (route of filteredRoutes; track route.id) {
+                <div class="route-item">
+                    <div class="route-info">
+                        <div class="route-name">
+                            {{ route.name }}
+                            @if (isAdmin) {
+                                <button class="edit-button" (click)="editRoute(route)" title="Edit name and description">
+                                    <span class="material-icons">edit</span>
+                                </button>
+                            }
+                        </div>
+                        <div class="route-meta">
+                            <span>{{ route.deviceId }} #{{ route.deviceRouteNo }}</span>
+                            @if (route.startedAt) {
+                                <span>{{ route.startedAt | date: 'dd.MM.yyyy HH:mm' }}</span>
+                            }
+                            @if (duration(route)) {
+                                <span>{{ duration(route) }}</span>
+                            }
+                            <span>{{ route.sampleCount }} samples</span>
+                        </div>
+                        @if (route.description) {
+                            <div class="route-description">{{ route.description }}</div>
+                        }
+                    </div>
+                    <div class="route-actions">
+                        <button [routerLink]="['/routes', route.id, 'map']" class="view-button">
+                            <span class="material-icons">map</span>
+                            <span>Map</span>
+                        </button>
+                        <button [routerLink]="['/routes', route.id, 'chart']" class="view-button">
+                            <span class="material-icons">insert_chart</span>
+                            <span>Chart</span>
+                        </button>
+                        @if (isAdmin) {
+                            <button class="delete-button" (click)="deleteRoute(route)" title="Delete route">
+                                <span class="material-icons">delete</span>
+                            </button>
+                        }
+                    </div>
+                </div>
+            } @empty {
+                <div class="loading">No routes yet.</div>
+            }
         </div>
-    </div>
+    }
 </div>

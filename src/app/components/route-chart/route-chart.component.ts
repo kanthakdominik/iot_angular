@@ -1,55 +1,65 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
-import { RouterModule, ActivatedRoute } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { Subscription } from 'rxjs';
-
-import { IotData } from '../../models/iot-data.model';
+import { Subscription, forkJoin } from 'rxjs';
+import { Measurement } from '../../models/measurement.model';
+import { Marker } from '../../models/marker.model';
 import { Route } from '../../models/route.model';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { ChartService } from '../../services/chart.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
-
 @Component({
   selector: 'app-route-chart',
   standalone: true,
-  imports: [RouterModule, CommonModule],
+  imports: [RouterModule, DatePipe],
   templateUrl: './route-chart.component.html',
   styleUrls: ['./route-chart.component.scss']
 })
-export class RouteChartComponent implements OnInit, OnDestroy {
-  @ViewChild('chartCanvas') chartCanvas!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('chartCanvasCpm') chartCanvasCpm!: ElementRef<HTMLCanvasElement>;
+export class RouteChartComponent implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild('chartCanvas', { static: true }) chartCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('chartCanvasCpm', { static: true }) chartCanvasCpm!: ElementRef<HTMLCanvasElement>;
 
-  routeName = '';
+  route?: Route;
+  markers: Marker[] = [];
   loading = false;
   error = '';
-  isLoggedIn = false;
+  isAdmin = false;
+  routeId = 0;
 
-  private routeId!: number;
-  private routeData: IotData[] = [];
+  private measurements: Measurement[] = [];
   private subscriptions = new Subscription();
 
   constructor(
-    private route: ActivatedRoute,
+    private activatedRoute: ActivatedRoute,
     private apiService: ApiService,
     private authService: AuthService,
     private chartService: ChartService,
     private modalService: NgbModal
   ) { }
 
+  get noFixCount(): number {
+    return this.measurements.filter(m => !m.gpsFix).length;
+  }
+
+  get sampleCount(): number {
+    return this.measurements.length;
+  }
+
   ngOnInit(): void {
-    this.initializeRouteId();
+    this.routeId = Number(this.activatedRoute.snapshot.paramMap.get('id'));
     this.subscriptions.add(
-      this.authService.currentUser$.subscribe(user => {
-        this.isLoggedIn = !!user;
-        if (this.chartCanvas && this.routeData.length > 0) {
-          this.initCharts();
-        }
+      this.authService.isAdmin$.subscribe(isAdmin => {
+        this.isAdmin = isAdmin;
+        this.drawCharts();
       })
     );
+  }
+
+  ngAfterViewInit(): void {
+    this.load();
   }
 
   ngOnDestroy(): void {
@@ -57,97 +67,54 @@ export class RouteChartComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  public refreshData(): void {
+  load(): void {
     this.loading = true;
-    this.loadRouteData();
-  }
-
-  private initializeRouteId(): void {
-    this.routeId = Number(this.route.snapshot.paramMap.get('id'));
-    if (this.routeId) {
-      this.loadRouteDetails();
-    }
-  }
-
-  private loadRouteDetails(): void {
-    this.loading = true;
-    this.apiService.getRoute(this.routeId).subscribe({
-      next: (route: Route) => {
-        this.routeName = route.name;
-        this.loadRouteData();
-      },
-      error: (err: any) => {
-        this.handleError('Failed to load route details', err);
-      }
-    });
-  }
-
-  private loadRouteData(): void {
-    this.apiService.getRouteData(this.routeId).subscribe({
-      next: (data) => {
-        this.routeData = data;
+    this.error = '';
+    forkJoin({
+      route: this.apiService.getRoute(this.routeId),
+      measurements: this.apiService.getMeasurements(this.routeId),
+      markers: this.apiService.getMarkers(this.routeId)
+    }).subscribe({
+      next: ({ route, measurements, markers }) => {
+        this.route = route;
+        this.measurements = measurements;
+        this.markers = markers;
         this.loading = false;
-        if (this.chartCanvas) {
-          this.initCharts();
-        }
+        this.drawCharts();
       },
-      error: (err) => {
-        this.handleError('Failed to load route data', err);
+      error: () => {
+        this.error = 'Failed to load route data';
+        this.loading = false;
       }
     });
   }
 
-  private initCharts(): void {
-    const deleteCallback = this.isLoggedIn 
-      ? (pointId: number) => this.deleteDataPoint(pointId)
-      : undefined;
-
-    this.chartService.initRadiationChart(
-      this.chartCanvas.nativeElement, 
-      this.routeData,
-      deleteCallback
-    );
-    
-    this.chartService.initCpmChart(
-      this.chartCanvasCpm.nativeElement, 
-      this.routeData,
-      deleteCallback
-    );
-  }
-  
-  private deleteDataPoint(pointId: number): void {
-    if (!this.isLoggedIn) {
+  private drawCharts(): void {
+    if (!this.chartCanvas || this.measurements.length === 0) {
       return;
     }
-
-    const modalRef = this.modalService.open(ConfirmDialogComponent, {
-      centered: true,
-      backdrop: 'static'
-    });
-    
-    modalRef.componentInstance.title = 'Delete Point';
-    modalRef.componentInstance.message = 'Are you sure you want to delete this point?';
-
-    modalRef.closed.subscribe(result => {
-      if (result) {
-        this.loading = true;
-        this.apiService.deleteIotDataPoint(this.routeId, pointId).subscribe({
-          next: () => {
-            this.routeData = this.routeData.filter(point => point.id !== pointId);
-            this.initCharts();
-            this.loading = false;
-          },
-          error: (error) => {
-            this.handleError('Failed to delete point', error);
-          }
-        });
-      }
-    });
+    const onClick = this.isAdmin ? (m: Measurement) => this.deleteDataPoint(m) : undefined;
+    this.chartService.initRadiationChart(this.chartCanvas.nativeElement, this.measurements, onClick);
+    this.chartService.initCpmChart(this.chartCanvasCpm.nativeElement, this.measurements, onClick);
   }
 
-  private handleError(message: string, error: any): void {
-    this.error = message;
-    this.loading = false;
-    console.error(`${message}:`, error);
+  private deleteDataPoint(m: Measurement): void {
+    const modalRef = this.modalService.open(ConfirmDialogComponent, { centered: true, backdrop: 'static' });
+    modalRef.componentInstance.title = 'Delete point';
+    modalRef.componentInstance.message =
+      `Delete the measurement from ${new Date(m.timestamp).toLocaleTimeString()} (${m.usvPerHour} µSv/h)?`;
+
+    modalRef.closed.subscribe(confirmed => {
+      if (!confirmed) {
+        return;
+      }
+      this.apiService.deleteMeasurement(this.routeId, m.id).subscribe({
+        next: () => {
+          this.measurements = this.measurements.filter(x => x.id !== m.id);
+          this.drawCharts();
+        },
+        error: () => this.error = 'Failed to delete point'
+      });
+    });
   }
 }

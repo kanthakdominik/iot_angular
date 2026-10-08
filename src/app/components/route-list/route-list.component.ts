@@ -1,31 +1,32 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { Subscription } from 'rxjs';
-
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { SearchService } from '../../services/search.service';
 import { Route } from '../../models/route.model';
-import { EditRouteNameModalComponent } from '../edit-route-name-modal/edit-route-name-modal.component';
+import { EditRouteModalComponent } from '../edit-route-modal/edit-route-modal.component';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
+import { DevicePanelComponent } from '../device-panel/device-panel.component';
 
 @Component({
   selector: 'app-route-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, NgbModule],
+  imports: [RouterModule, DatePipe, DevicePanelComponent],
   templateUrl: './route-list.component.html',
   styleUrls: ['./route-list.component.scss']
 })
 export class RouteListComponent implements OnInit, OnDestroy {
   private subscriptions = new Subscription();
+  private searchQuery = '';
 
   routes: Route[] = [];
   filteredRoutes: Route[] = [];
   loading = false;
   error = '';
-  isLoggedIn = false;
+  isAdmin = false;
 
   constructor(
     private apiService: ApiService,
@@ -37,13 +38,12 @@ export class RouteListComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadRoutes();
     this.subscriptions.add(
-      this.authService.currentUser$.subscribe(user => {
-        this.isLoggedIn = !!user;
-      })
+      this.authService.isAdmin$.subscribe(isAdmin => this.isAdmin = isAdmin)
     );
     this.subscriptions.add(
       this.searchService.searchQuery$.subscribe(query => {
-        this.filterRoutes(query);
+        this.searchQuery = query;
+        this.applyFilter();
       })
     );
   }
@@ -52,87 +52,70 @@ export class RouteListComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  filterRoutes(searchQuery: string): void {
-    if (!searchQuery.trim()) {
-      this.filteredRoutes = this.routes;
-      return;
-    }
-
-    this.filteredRoutes = this.routes.filter(route =>
-      route.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+  loadRoutes(): void {
+    this.loading = true;
+    this.apiService.getRoutes().subscribe({
+      next: routes => {
+        this.routes = routes;
+        this.applyFilter();
+        this.loading = false;
+      },
+      error: () => {
+        this.error = 'Failed to load routes';
+        this.loading = false;
+      }
+    });
   }
 
-  editRouteName(route: Route): void {
-    if (!this.isLoggedIn) {
-      return;
-    }
+  /** After "New route" the device starts sending a new route - refresh the list shortly after. */
+  onDeviceCommand(): void {
+    setTimeout(() => this.loadRoutes(), 5000);
+  }
 
-    const modalRef = this.modalService.open(EditRouteNameModalComponent);
-    modalRef.componentInstance.currentName = route.name;
-    modalRef.componentInstance.routeId = route.id;
-
+  editRoute(route: Route): void {
+    const modalRef = this.modalService.open(EditRouteModalComponent);
+    modalRef.componentInstance.route = route;
     modalRef.result.then(
-      (newName: string) => {
-        this.apiService.updateRouteName(route.id, newName).subscribe({
-          next: () => {
-            route.name = newName;
-          },
-          error: (error) => {
-            this.error = 'Failed to update route name';
-            console.error('Error updating route name:', error);
-          }
-        });
+      (updated: Route) => {
+        this.routes = this.routes.map(r => r.id === updated.id ? updated : r);
+        this.applyFilter();
       },
       () => void 0
     );
   }
 
   deleteRoute(route: Route): void {
-    if (!this.isLoggedIn) {
-      return;
-    }
+    const modalRef = this.modalService.open(ConfirmDialogComponent, { centered: true, backdrop: 'static' });
+    modalRef.componentInstance.title = 'Delete route';
+    modalRef.componentInstance.message =
+      `Are you sure you want to delete route "${route.name}"? All ${route.sampleCount} measurements will be deleted.`;
 
-    const modalRef = this.modalService.open(ConfirmDialogComponent, {
-      centered: true,
-      backdrop: 'static'
-    });
-
-    modalRef.componentInstance.title = 'Delete Route';
-    modalRef.componentInstance.message = `Are you sure you want to delete route "${route.name}"? This will also delete all associated data points.`;
-
-    modalRef.closed.subscribe(result => {
-      if (result) {
-        this.loading = true;
-        this.apiService.deleteRoute(route.id).subscribe({
-          next: () => {
-            this.routes = this.routes.filter(r => r.id !== route.id);
-            this.filteredRoutes = this.filteredRoutes.filter(r => r.id !== route.id);
-            this.loading = false;
-          },
-          error: (error) => {
-            this.error = 'Failed to delete route';
-            this.loading = false;
-            console.error('Error deleting route:', error);
-          }
-        });
+    modalRef.closed.subscribe(confirmed => {
+      if (!confirmed) {
+        return;
       }
+      this.apiService.deleteRoute(route.id).subscribe({
+        next: () => {
+          this.routes = this.routes.filter(r => r.id !== route.id);
+          this.applyFilter();
+        },
+        error: () => this.error = 'Failed to delete route'
+      });
     });
   }
 
-  private loadRoutes(): void {
-    this.loading = true;
-    this.apiService.getAllRoutes().subscribe({
-      next: (routes: Route[]) => {
-        this.routes = routes;
-        this.filteredRoutes = routes;
-        this.loading = false;
-      },
-      error: (error) => {
-        this.error = 'Failed to load routes';
-        this.loading = false;
-        console.error('Error loading routes:', error);
-      }
-    });
+  duration(route: Route): string {
+    if (!route.startedAt || !route.endedAt) {
+      return '';
+    }
+    const seconds = Math.round((Date.parse(route.endedAt) - Date.parse(route.startedAt)) / 1000);
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return h > 0 ? `${h} h ${m} min` : `${m} min ${s} s`;
+  }
+
+  private applyFilter(): void {
+    this.filteredRoutes = this.routes.filter(route => SearchService.matches(route, this.searchQuery));
   }
 }

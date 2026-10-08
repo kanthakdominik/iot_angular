@@ -1,58 +1,70 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule, ActivatedRoute } from '@angular/router';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { DatePipe, DecimalPipe } from '@angular/common';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { Subscription } from 'rxjs';
-
-import { IotData } from '../../models/iot-data.model';
+import { Subscription, forkJoin } from 'rxjs';
+import { Measurement, hasPosition } from '../../models/measurement.model';
+import { Marker } from '../../models/marker.model';
 import { Route } from '../../models/route.model';
-import { MapService } from '../../services/map.service';
+import { MapCallbacks, MapService } from '../../services/map.service';
 import { RadiationLevelService } from '../../services/radiation-legend.service';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
-
+import { TextInputModalComponent } from '../text-input-modal/text-input-modal.component';
 
 @Component({
   selector: 'app-route-map',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [RouterModule, DatePipe, DecimalPipe],
   templateUrl: './route-map.component.html',
   styleUrls: ['./route-map.component.scss']
 })
-export class RouteMapComponent implements OnInit, OnDestroy {
-  @ViewChild('mapRef') mapRef!: ElementRef;
+export class RouteMapComponent implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild('mapRef', { static: true }) mapRef!: ElementRef<HTMLElement>;
 
-  routeId!: number;
-  routeName = '';
-  routeData: IotData[] = [];
+  route?: Route;
+  measurements: Measurement[] = [];
+  markers: Marker[] = [];
   loading = false;
   error = '';
-  isLoggedIn = false;
+  isAdmin = false;
 
   readonly legendItems = RadiationLevelService.legendItems;
+  routeId = 0;
   private subscriptions = new Subscription();
-  private readonly MAX_ATTEMPTS = 5;
-  private initAttempts = 0;
 
   constructor(
-    private route: ActivatedRoute,
+    private activatedRoute: ActivatedRoute,
     private apiService: ApiService,
     private mapService: MapService,
     private modalService: NgbModal,
     private authService: AuthService
   ) { }
 
+  get positionedCount(): number {
+    return this.measurements.filter(hasPosition).length;
+  }
+
+  get maxUsv(): number {
+    return this.measurements.reduce((max, m) => Math.max(max, m.usvPerHour), 0);
+  }
+
   ngOnInit(): void {
-    this.initializeRoute();
+    this.routeId = Number(this.activatedRoute.snapshot.paramMap.get('id'));
     this.subscriptions.add(
-      this.authService.currentUser$.subscribe(user => {
-        this.isLoggedIn = !!user;
-        if (this.routeData.length > 0) {
-          this.updateMap();
-        }
+      this.authService.isAdmin$.subscribe(isAdmin => {
+        this.isAdmin = isAdmin;
+        this.redraw(false);
       })
     );
+  }
+
+  ngAfterViewInit(): void {
+    this.mapService.initMap(this.mapRef.nativeElement);
+    // the container gets its final size after layout
+    setTimeout(() => this.mapService.invalidateSize(), 200);
+    this.load(true);
   }
 
   ngOnDestroy(): void {
@@ -60,141 +72,90 @@ export class RouteMapComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  refreshMap(): void {
-    this.resetMapState();
-    this.loadRouteData();
-  }
-
-  tryInitMap(): void {
-    if (this.hasReachedMaxAttempts()) return;
-    if (!this.isMapElementReady()) return;
-
-    this.initializeMap();
-  }
-
-  private initializeRoute(): void {
-    this.routeId = Number(this.route.snapshot.paramMap.get('id'));
-    if (this.routeId) {
-      this.loadRouteDetails();
-    }
-  }
-
-  private resetMapState(): void {
-    this.error = '';
-    this.initAttempts = 0;
-    this.mapService.destroy();
-  }
-
-  private hasReachedMaxAttempts(): boolean {
-    if (this.initAttempts >= this.MAX_ATTEMPTS) {
-      this.error = 'Failed to initialize map after multiple attempts';
-      return true;
-    }
-    return false;
-  }
-
-  private isMapElementReady(): boolean {
-    if (!this.mapRef?.nativeElement?.offsetHeight) {
-      this.initAttempts++;
-      setTimeout(() => this.tryInitMap(), 100);
-      return false;
-    }
-    return true;
-  }
-
-  private initializeMap(): void {
-    try {
-      this.error = '';      
-      const map = this.mapService.initMap(this.mapRef.nativeElement);
-      
-      setTimeout(() => {
-        map.invalidateSize();
-      }, 300);
-
-      if (this.routeData.length > 0) {
-          this.updateMap();
-        }
-      } catch (error) {
-        this.handleMapError(error);
-      }
-  }
-
-  private updateMap(): void {
-    const deleteCallback = this.isLoggedIn 
-      ? (pointId: number) => this.deleteDataPoint(pointId)
-      : undefined;
-    
-    this.mapService.updateMapWithData(this.routeData, deleteCallback);
-  }
-
-  private loadRouteDetails(): void {
+  load(fitBounds = false): void {
     this.loading = true;
-    this.apiService.getRoute(this.routeId).subscribe({
-      next: (route: Route) => {
-        this.routeName = route.name;
-        this.loadRouteData();
+    this.error = '';
+    forkJoin({
+      route: this.apiService.getRoute(this.routeId),
+      measurements: this.apiService.getMeasurements(this.routeId),
+      markers: this.apiService.getMarkers(this.routeId)
+    }).subscribe({
+      next: ({ route, measurements, markers }) => {
+        this.route = route;
+        this.measurements = measurements;
+        this.markers = markers;
+        this.loading = false;
+        this.redraw(fitBounds);
       },
-      error: (error: Error) => {
-        this.handleError('Failed to load route details', error);
+      error: () => {
+        this.error = 'Failed to load route data';
+        this.loading = false;
       }
     });
   }
 
-  private loadRouteData(): void {
-    this.apiService.getRouteData(this.routeId).subscribe({
-      next: (data: IotData[]) => {
-        this.handleRouteDataSuccess(data);
-      },
-      error: (error: Error) => {
-        this.handleError('Failed to load route data', error);
-      }
-    });
+  deleteMarker(marker: Marker): void {
+    this.confirm('Delete marker', `Delete marker "${marker.label}"?`, () =>
+      this.apiService.deleteMarker(this.routeId, marker.id).subscribe({
+        next: () => {
+          this.markers = this.markers.filter(m => m.id !== marker.id);
+          this.redraw(false);
+        },
+        error: () => this.error = 'Failed to delete marker'
+      }));
   }
 
-  private handleRouteDataSuccess(data: IotData[]): void {
-    this.routeData = data;
-    this.loading = false;
-    this.initAttempts = 0;
-    setTimeout(() => this.tryInitMap(), 300);
-  }
-
-  private handleError(message: string, error: Error): void {
-    this.error = message;
-    this.loading = false;
-    console.error(`${message}:`, error);
-  }
-
-  private handleMapError(error: unknown): void {
-    console.error('Error initializing map:', error);
-    this.error = 'Failed to initialize map';
-  }
-
-  deleteDataPoint(pointId: number): void {
-    if (!this.isLoggedIn) {
+  private redraw(fitBounds: boolean): void {
+    if (!this.mapService.isMapInitialized()) {
       return;
     }
+    const callbacks: MapCallbacks = this.isAdmin ? {
+      onDeletePoint: m => this.deletePoint(m),
+      onAddMarker: m => this.addMarkerAt(m),
+      onDeleteMarker: marker => this.deleteMarker(marker)
+    } : {};
+    this.mapService.update(this.measurements, this.markers, callbacks, fitBounds);
+  }
 
-    const modalRef = this.modalService.open(ConfirmDialogComponent, {
-      centered: true,
-      backdrop: 'static'
-    });
-    
-    modalRef.componentInstance.title = 'Delete Point';
-    modalRef.componentInstance.message = 'Are you sure you want to delete this point?';
+  private deletePoint(m: Measurement): void {
+    this.confirm('Delete point', 'Are you sure you want to delete this measurement?', () =>
+      this.apiService.deleteMeasurement(this.routeId, m.id).subscribe({
+        next: () => {
+          this.measurements = this.measurements.filter(x => x.id !== m.id);
+          this.redraw(false);
+        },
+        error: () => this.error = 'Failed to delete point'
+      }));
+  }
 
-    modalRef.closed.subscribe(result => {
-      if (result) {
-        this.loading = true;
-        this.apiService.deleteIotDataPoint(this.routeId, pointId).subscribe({
-          next: () => {
-            this.routeData = this.routeData.filter(point => point.id !== pointId);
-            this.refreshMap();
-            this.loading = false;
-          },
-          error: (error: Error) => {
-            this.handleError('Failed to delete point', error);
-          }
-        });
+  private addMarkerAt(m: Measurement): void {
+    const modalRef = this.modalService.open(TextInputModalComponent);
+    modalRef.componentInstance.title = 'Add marker';
+    modalRef.componentInstance.label = 'Label (e.g. "Am-241 source")';
+    modalRef.result.then(
+      (label: string) => this.apiService.addMarker(this.routeId, {
+        label,
+        timestamp: m.timestamp,
+        latitude: m.latitude ?? undefined,
+        longitude: m.longitude ?? undefined
+      }).subscribe({
+        next: marker => {
+          this.markers = [...this.markers, marker];
+          this.redraw(false);
+        },
+        error: () => this.error = 'Failed to add marker'
+      }),
+      () => void 0
+    );
+  }
+
+  private confirm(title: string, message: string, onConfirm: () => void): void {
+    const modalRef = this.modalService.open(ConfirmDialogComponent, { centered: true, backdrop: 'static' });
+    modalRef.componentInstance.title = title;
+    modalRef.componentInstance.message = message;
+    modalRef.closed.subscribe(confirmed => {
+      if (confirmed) {
+        onConfirm();
       }
     });
   }

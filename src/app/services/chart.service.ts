@@ -1,130 +1,98 @@
 import { Injectable } from '@angular/core';
 import { Chart, ChartOptions } from 'chart.js';
-import { IotData } from '../models/iot-data.model';
 import 'chart.js/auto';
+import { Measurement } from '../models/measurement.model';
 
+const NO_FIX_COLOR = 'rgba(108, 117, 125, 0.9)';
+
+/**
+ * Time charts of a route (µSv/h and CPM). All samples are shown - also those without a GNSS fix,
+ * which are drawn as grey points.
+ */
 @Injectable({
   providedIn: 'root'
 })
 export class ChartService {
-  private radiationChart: Chart | undefined;
-  private cpmChart: Chart | undefined;
+  private radiationChart?: Chart;
+  private cpmChart?: Chart;
 
-  initRadiationChart(
-    canvas: HTMLCanvasElement, 
-    data: IotData[], 
-    onPointClick?: (id: number) => void
-  ): void {
-    if (this.radiationChart) {
-      this.radiationChart.destroy();
-    }
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    this.radiationChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: this.getTimeLabels(data),
-        datasets: [{
-          label: 'Radiation Level (µSv/h)',
-          data: data.map(d => d.usvPerHour),
-          borderColor: 'rgb(255, 99, 132)',
-          backgroundColor: 'rgba(255, 99, 132, 0.2)',
-          tension: 0.1,
-          fill: true
-        }]
-      },
-      options: this.getChartOptions('Radiation Level (µSv/h)', data, onPointClick)
-    });
+  initRadiationChart(canvas: HTMLCanvasElement, data: Measurement[], onPointClick?: (m: Measurement) => void): void {
+    this.radiationChart?.destroy();
+    this.radiationChart = this.createChart(canvas, data, 'Radiation level (µSv/h)', d => d.usvPerHour,
+      'rgb(255, 99, 132)', 'rgba(255, 99, 132, 0.2)', onPointClick);
   }
 
-  initCpmChart(
-    canvas: HTMLCanvasElement, 
-    data: IotData[], 
-    onPointClick?: (id: number) => void
-  ): void {
-    if (this.cpmChart) {
-      this.cpmChart.destroy();
-    }
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    this.cpmChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: this.getTimeLabels(data),
-        datasets: [{
-          label: 'Counts Per Minute (CPM)',
-          data: data.map(d => d.cpm),
-          borderColor: 'rgb(54, 162, 235)',
-          backgroundColor: 'rgba(54, 162, 235, 0.2)',
-          tension: 0.1,
-          fill: true
-        }]
-      },
-      options: this.getChartOptions('Counts Per Minute (CPM)', data, onPointClick)
-    });
+  initCpmChart(canvas: HTMLCanvasElement, data: Measurement[], onPointClick?: (m: Measurement) => void): void {
+    this.cpmChart?.destroy();
+    this.cpmChart = this.createChart(canvas, data, 'Counts per minute (CPM)', d => d.cpm,
+      'rgb(54, 162, 235)', 'rgba(54, 162, 235, 0.2)', onPointClick);
   }
 
   destroy(): void {
-    if (this.radiationChart) {
-      this.radiationChart.destroy();
-    }
-    if (this.cpmChart) {
-      this.cpmChart.destroy();
-    }
+    this.radiationChart?.destroy();
+    this.cpmChart?.destroy();
+    this.radiationChart = undefined;
+    this.cpmChart = undefined;
   }
 
-  private getTimeLabels(data: IotData[]): string[] {
-    return data.map(d => new Date(d.timestamp).toLocaleTimeString());
+  private createChart(canvas: HTMLCanvasElement, data: Measurement[], label: string,
+                      value: (m: Measurement) => number, color: string, fill: string,
+                      onPointClick?: (m: Measurement) => void): Chart | undefined {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      return undefined;
+    }
+    return new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: data.map(d => new Date(d.timestamp).toLocaleTimeString()),
+        datasets: [{
+          label,
+          data: data.map(value),
+          borderColor: color,
+          backgroundColor: fill,
+          pointBackgroundColor: data.map(d => d.gpsFix ? color : NO_FIX_COLOR),
+          pointRadius: data.length > 600 ? 0 : 2,
+          pointHoverRadius: 5,
+          tension: 0.1,
+          fill: true
+        }]
+      },
+      options: this.options(label, data, onPointClick)
+    });
   }
 
-  private getChartOptions(
-    yAxisLabel: string, 
-    data: IotData[], 
-    onPointClick?: (id: number) => void
-  ): ChartOptions {
+  private options(yAxisLabel: string, data: Measurement[], onPointClick?: (m: Measurement) => void): ChartOptions<'line'> {
     return {
       responsive: true,
       maintainAspectRatio: false,
-      onClick: onPointClick ? (event: any, elements: any[]) => {
+      animation: false,
+      onClick: onPointClick ? (_event, elements) => {
         if (elements.length > 0) {
-          const index = elements[0].index;
-          const pointId = data[index].id;
-          onPointClick(pointId);
+          onPointClick(data[elements[0].index]);
         }
       } : undefined,
       interaction: {
-        intersect: true,
-        mode: 'nearest'
+        intersect: false,
+        mode: 'nearest',
+        axis: 'x'
       },
       plugins: {
         tooltip: {
           callbacks: {
-            footer: onPointClick ? () => 'Click to delete this point' : undefined
+            afterLabel: item => data[item.dataIndex].gpsFix ? '' : 'no GPS fix',
+            footer: () => onPointClick ? 'Click to delete this point' : ''
           }
         }
       },
       scales: {
         y: {
           beginAtZero: true,
-          title: {
-            display: true,
-            text: yAxisLabel
-          }
+          title: { display: true, text: yAxisLabel }
         },
         x: {
-          title: {
-            display: true,
-            text: 'Time'
-          },
-          ticks: {
-            maxTicksLimit: 15,
-            maxRotation: 45,
-            autoSkip: true,
-          }
+          title: { display: true, text: 'Time' },
+          ticks: { maxTicksLimit: 15, maxRotation: 45, autoSkip: true }
         }
       }
     };

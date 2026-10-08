@@ -1,14 +1,14 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
 import { Login } from '../../models/login.model';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
@@ -35,16 +35,11 @@ export class LoginComponent {
     this.error = '';
 
     this.authService.login(this.credentials).subscribe({
-      next: (response) => {
-        if (response.username) {
-          this.router.navigate(['/']);
-        } else {
-          this.error = 'Login failed';
-          this.loading = false;
-        }
-      },
-      error: (error) => {
-        this.error = error.error?.message || 'Invalid credentials';
+      next: () => this.router.navigate(['/']),
+      error: (error: HttpErrorResponse) => {
+        this.error = error.status === 429
+          ? 'Too many failed attempts. Try again in 15 minutes.'
+          : 'Invalid username or password';
         this.loading = false;
       }
     });

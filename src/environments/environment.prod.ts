@@ -1,4 +1,5 @@
 export const environment = {
-    production: false,
-    apiUrl: 'https://api.iot-manager.click/api'
+    production: true,
+    // Frontend and backend are served from the same domain (Caddy proxies /api to the backend)
+    apiUrl: '/api'
 };

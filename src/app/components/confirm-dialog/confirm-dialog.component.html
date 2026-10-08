@@ -7,5 +7,5 @@
 </div>
 <div class="modal-footer">
     <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Cancel</button>
-    <button type="button" class="btn btn-danger" (click)="modal.close(true)">Delete</button>
+    <button type="button" class="btn" [class]="'btn ' + confirmClass" (click)="modal.close(true)">{{ confirmLabel }}</button>
 </div>

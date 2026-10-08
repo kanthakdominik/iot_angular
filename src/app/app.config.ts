@@ -1,15 +1,14 @@
-import { ApplicationConfig, importProvidersFrom, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXsrfConfiguration } from '@angular/common/http';
 import { routes } from './app.routes';
-import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { FormsModule } from '@angular/forms';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    importProvidersFrom(NgbModule, FormsModule),
-    provideHttpClient()
+    // the backend (Spring Security, csrf.spa()) sets the XSRF-TOKEN cookie;
+    // Angular copies it into the X-XSRF-TOKEN header of POST/PUT/PATCH/DELETE requests
+    provideHttpClient(withXsrfConfiguration({ cookieName: 'XSRF-TOKEN', headerName: 'X-XSRF-TOKEN' }))
   ]
 };

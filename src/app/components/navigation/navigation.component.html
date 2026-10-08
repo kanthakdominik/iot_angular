@@ -15,34 +15,27 @@
           <span class="input-group-text bg-transparent border-end-0">
             <i class="material-icons">search</i>
           </span>
-          <input 
-            type="search" 
-            class="form-control border-start-0" 
-            [(ngModel)]="searchQuery"
-            name="search"
-            placeholder="Search routes..."
-            (input)="onSearch()"
-          >
+          <input type="search" class="form-control border-start-0" [(ngModel)]="searchQuery" name="search"
+            placeholder="Search routes (name, description, device)..." (input)="onSearch()">
         </div>
       </form>
 
       <div class="ms-auto">
-        <ng-container *ngIf="!isLoggedIn">
-          <button class="btn btn-outline-light" routerLink="/login">
-            <i class="material-icons align-middle">login</i>
-            <span class="ms-1">Login</span>
-          </button>
-        </ng-container>
-        <ng-container *ngIf="isLoggedIn">
+        @if (user) {
           <span class="me-3 text-light">
             <i class="material-icons align-middle">person</i>
-            <strong class="ms-1 me-3">{{ username }}</strong>
+            <strong class="ms-1 me-3">{{ user.username }}</strong>
           </span>
           <button class="btn btn-outline-light" type="button" (click)="logout()">
             <i class="material-icons align-middle">logout</i>
             <span class="ms-1">Logout</span>
           </button>
-        </ng-container>
+        } @else {
+          <button class="btn btn-outline-light" routerLink="/login">
+            <i class="material-icons align-middle">login</i>
+            <span class="ms-1">Login</span>
+          </button>
+        }
       </div>
     </div>
   </div>

@@ -1,10 +1,10 @@
 export interface Login {
-    username: string;
-    password: string;
+  username: string;
+  password: string;
 }
 
-export interface LoginResponse {
-    message: string;
-    username: string;
-    sessionId: string;
-} 
+/** Response of /api/auth/login and /api/auth/me. */
+export interface UserInfo {
+  username: string;
+  role: string;
+}

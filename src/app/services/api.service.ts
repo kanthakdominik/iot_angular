@@ -1,64 +1,92 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { Route } from '../models/route.model';
-import { IotData } from '../models/iot-data.model';
-import { RouteNameUpdate } from '../models/route-name-update.model';
-import { Login, LoginResponse } from '../models/login.model';
+import { Route, RouteUpdate } from '../models/route.model';
+import { Measurement } from '../models/measurement.model';
+import { Marker, MarkerCreate } from '../models/marker.model';
+import { Device, DeviceCommand } from '../models/device.model';
+import { Login, UserInfo } from '../models/login.model';
 
+/**
+ * REST client of the backend (docs/PROTOCOL.md, section 3).
+ * Requests go to the same origin, so the session cookie and the CSRF token
+ * (XSRF-TOKEN cookie -> X-XSRF-TOKEN header) are handled by the browser and Angular automatically.
+ */
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
   private readonly routesUrl = `${environment.apiUrl}/routes`;
+  private readonly devicesUrl = `${environment.apiUrl}/devices`;
   private readonly authUrl = `${environment.apiUrl}/auth`;
 
   constructor(private http: HttpClient) { }
 
-  getAllRoutes(): Observable<Route[]> {
-    return this.http.get<Route[]>(this.routesUrl);
+  // ---------------------------------------------------------------- routes
+
+  getRoutes(deviceId?: string): Observable<Route[]> {
+    const params = deviceId ? new HttpParams().set('deviceId', deviceId) : undefined;
+    return this.http.get<Route[]>(this.routesUrl, { params });
   }
 
   getRoute(routeId: number): Observable<Route> {
     return this.http.get<Route>(`${this.routesUrl}/${routeId}`);
   }
 
-  getRouteData(routeId: number): Observable<IotData[]> {
-    return this.http.get<IotData[]>(`${this.routesUrl}/${routeId}/data`);
+  updateRoute(routeId: number, update: RouteUpdate): Observable<Route> {
+    return this.http.patch<Route>(`${this.routesUrl}/${routeId}`, update);
   }
 
-  updateRouteName(routeId: number, newName: string): Observable<void> {
-    const body: RouteNameUpdate = { newName };
-    return this.http.put<void>(`${this.routesUrl}/${routeId}/name`, body, { 
-      withCredentials: true });
+  deleteRoute(routeId: number): Observable<void> {
+    return this.http.delete<void>(`${this.routesUrl}/${routeId}`);
   }
 
-  deleteRoute(routeId: number): Observable<any> {
-    return this.http.delete(`${this.routesUrl}/${routeId}`, { 
-      withCredentials: true });
+  getMeasurements(routeId: number): Observable<Measurement[]> {
+    return this.http.get<Measurement[]>(`${this.routesUrl}/${routeId}/measurements`);
   }
 
-  deleteIotDataPoint(routeId: number, iotDataId: number): Observable<any> {
-    return this.http.delete(`${this.routesUrl}/${routeId}/data/${iotDataId}`, { 
-      withCredentials: true });
+  deleteMeasurement(routeId: number, measurementId: number): Observable<void> {
+    return this.http.delete<void>(`${this.routesUrl}/${routeId}/measurements/${measurementId}`);
   }
 
-  login(credentials: Login): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.authUrl}/login`, credentials, {
-      withCredentials: true
-    });
+  getMarkers(routeId: number): Observable<Marker[]> {
+    return this.http.get<Marker[]>(`${this.routesUrl}/${routeId}/markers`);
   }
 
-  getCurrentUser(): Observable<{ username: string }> {
-    return this.http.get<{ username: string }>(`${this.authUrl}/username`, {
-      withCredentials: true
-    });
+  addMarker(routeId: number, marker: MarkerCreate): Observable<Marker> {
+    return this.http.post<Marker>(`${this.routesUrl}/${routeId}/markers`, marker);
   }
 
-  logout(): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.authUrl}/logout`, {}, {
-      withCredentials: true
-    });
+  deleteMarker(routeId: number, markerId: number): Observable<void> {
+    return this.http.delete<void>(`${this.routesUrl}/${routeId}/markers/${markerId}`);
+  }
+
+  // ---------------------------------------------------------------- devices
+
+  getDevices(): Observable<Device[]> {
+    return this.http.get<Device[]>(this.devicesUrl);
+  }
+
+  renameDevice(deviceId: string, name: string): Observable<Device> {
+    return this.http.patch<Device>(`${this.devicesUrl}/${deviceId}`, { name });
+  }
+
+  sendCommand(deviceId: string, cmd: DeviceCommand): Observable<void> {
+    return this.http.post<void>(`${this.devicesUrl}/${deviceId}/commands`, { cmd });
+  }
+
+  // ---------------------------------------------------------------- auth
+
+  login(credentials: Login): Observable<UserInfo> {
+    return this.http.post<UserInfo>(`${this.authUrl}/login`, credentials);
+  }
+
+  me(): Observable<UserInfo> {
+    return this.http.get<UserInfo>(`${this.authUrl}/me`);
+  }
+
+  logout(): Observable<void> {
+    return this.http.post<void>(`${this.authUrl}/logout`, {});
   }
 }
