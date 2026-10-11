@@ -1,7 +1,8 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, provideZoneChangeDetection, isDevMode } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withXsrfConfiguration, withXhr } from '@angular/common/http';
 import { routes } from './app.routes';
+import { provideServiceWorker } from '@angular/service-worker';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -9,6 +10,9 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     // the backend (Spring Security, csrf.spa()) sets the XSRF-TOKEN cookie;
     // Angular copies it into the X-XSRF-TOKEN header of POST/PUT/PATCH/DELETE requests
-    provideHttpClient(withXhr(), withXsrfConfiguration({ cookieName: 'XSRF-TOKEN', headerName: 'X-XSRF-TOKEN' }))
+    provideHttpClient(withXhr(), withXsrfConfiguration({ cookieName: 'XSRF-TOKEN', headerName: 'X-XSRF-TOKEN' })), provideServiceWorker('ngsw-worker.js', {
+            enabled: !isDevMode(),
+            registrationStrategy: 'registerWhenStable:30000'
+          })
   ]
 };
