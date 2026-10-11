@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { Subscription, switchMap, timer } from 'rxjs';
@@ -12,6 +12,7 @@ import { TextInputModalComponent } from '../text-input-modal/text-input-modal.co
   standalone: true,
   imports: [DatePipe],
   templateUrl: './device-panel.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./device-panel.component.scss']
 })
 export class DevicePanelComponent implements OnInit, OnDestroy {

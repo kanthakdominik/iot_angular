@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -18,6 +18,7 @@ import { TextInputModalComponent } from '../text-input-modal/text-input-modal.co
   standalone: true,
   imports: [RouterModule, DatePipe, DecimalPipe],
   templateUrl: './route-map.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./route-map.component.scss']
 })
 export class RouteMapComponent implements OnInit, AfterViewInit, OnDestroy {

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -16,6 +16,7 @@ import { DevicePanelComponent } from '../device-panel/device-panel.component';
   standalone: true,
   imports: [RouterModule, DatePipe, DevicePanelComponent],
   templateUrl: './route-list.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./route-list.component.scss']
 })
 export class RouteListComponent implements OnInit, OnDestroy {
