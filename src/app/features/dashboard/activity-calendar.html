@@ -1,0 +1,40 @@
+<div class="scroller" #scroller>
+  <div class="plot" [style.min-width.px]="width() * 0.8" [style.max-width.px]="width()"
+       tabindex="0" role="group" [attr.aria-label]="'dashboard.activity.gridLabel' | t"
+       [attr.aria-describedby]="'activity-help'"
+       (focus)="focus()" (blur)="blur()" (keydown)="keydown($event)">
+    <svg [attr.viewBox]="'0 0 ' + width() + ' ' + height" role="img" [attr.aria-label]="summary()"
+         (pointerover)="pointerOver($event)" (pointerleave)="pointerLeave()">
+      @for (label of monthLabels(); track label.x) {
+        <text class="label" [attr.x]="label.x" [attr.y]="label.y" aria-hidden="true">{{ label.text }}</text>
+      }
+      @for (label of weekdayLabels(); track label.y) {
+        <text class="label" [attr.x]="label.x" [attr.y]="label.y" aria-hidden="true">{{ label.text }}</text>
+      }
+      @for (cell of cells(); track cell.key; let i = $index) {
+        <rect [attr.x]="cell.x" [attr.y]="cell.y" [attr.width]="cellSize" [attr.height]="cellSize" rx="2"
+              [class]="'cell l' + cell.level" [class.active]="active() === i" [attr.data-i]="i" />
+      }
+    </svg>
+    @if (tooltip(); as tip) {
+      <div class="tooltip" aria-hidden="true" [class.below]="tip.below" [style.left.px]="tip.left" [style.top.px]="tip.top">
+        <span class="date">{{ tip.date }}</span>
+        @for (line of tip.lines; track $index) {
+          <span>{{ line }}</span>
+        }
+      </div>
+    }
+  </div>
+</div>
+
+<div class="footer">
+  <span id="activity-help" class="help">{{ 'dashboard.activity.keyboardHint' | t }}</span>
+  <span class="legend" aria-hidden="true">
+    <span>{{ 'dashboard.activity.less' | t }}</span>
+    @for (l of legendLevels; track l) {
+      <span [class]="'swatch l' + l"></span>
+    }
+    <span>{{ 'dashboard.activity.more' | t }}</span>
+  </span>
+</div>
+<div class="app-visually-hidden" aria-live="polite">{{ announcement() }}</div>

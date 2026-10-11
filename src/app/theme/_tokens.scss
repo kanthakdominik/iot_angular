@@ -1,0 +1,52 @@
+// Application tokens (prefix --app-). Colours of the interface come from --mat-sys-*; these add the data colours
+// (dose scale), spacing, shapes and layout sizes. Keep in sync with core/units/dose-scale.ts.
+:root {
+  // dose rate scale 0–0.30 µSv/h (UI.md §2); positions = value / 0.30
+  --app-dose-1: #005500; // ≤ 0.02
+  --app-dose-2: #00dd00; // 0.10
+  --app-dose-3: #eeee00; // 0.14
+  --app-dose-4: #ff8800; // 0.20
+  --app-dose-5: #cc0000; // 0.26
+  --app-dose-6: #800000; // ≥ 0.30
+  --app-dose-gradient: linear-gradient(to right, #005500 0%, #005500 6.67%, #00dd00 33.33%, #eeee00 46.67%,
+    #ff8800 66.67%, #cc0000 86.67%, #800000 100%);
+  --app-no-fix: #9aa0a6;
+
+  // status colours (not data): live connection, online device
+  --app-live: light-dark(#1e7d34, #6dd58c);
+  --app-offline: var(--mat-sys-outline);
+
+  // 4 px grid
+  --app-space-1: 4px;
+  --app-space-2: 8px;
+  --app-space-3: 12px;
+  --app-space-4: 16px;
+  --app-space-5: 24px;
+  --app-space-6: 32px;
+
+  // shapes (M3)
+  --app-radius-card: 12px;
+  --app-radius-field: 4px;
+  --app-radius-chip: 8px;
+  --app-radius-dialog: 28px;
+
+  // layout
+  --app-content-max: 1440px;
+  --app-gutter: 24px;
+  --app-top-bar-height: 64px;
+  --app-rail-width: 88px;
+  --app-rail-width-collapsed: 72px;
+  --app-bottom-nav-height: 80px;
+
+  // motion (M3 emphasized / standard)
+  --app-ease: cubic-bezier(0.2, 0, 0, 1);
+  --app-duration-short: 150ms;
+  --app-duration-medium: 300ms;
+
+  --app-focus-ring: 2px solid var(--mat-sys-primary);
+
+  @media (max-width: 599.98px) {
+    --app-gutter: 16px;
+    --app-top-bar-height: 56px;
+  }
+}

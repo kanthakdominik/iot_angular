@@ -1,0 +1,88 @@
+<form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <h2 mat-dialog-title>{{ (isEdit ? 'alerts.dialog.editTitle' : 'alerts.dialog.createTitle') | t }}</h2>
+
+  <mat-dialog-content class="fields">
+    @if (error(); as message) {
+      <div class="error" role="alert">
+        <mat-icon aria-hidden="true">error</mat-icon>
+        <span>{{ message }}</span>
+      </div>
+    }
+
+    <mat-form-field>
+      <mat-label>{{ 'alerts.dialog.name' | t }}</mat-label>
+      <input matInput formControlName="name" maxlength="100" autocomplete="off" required cdkFocusInitial />
+      @if (form.controls.name.hasError('maxlength')) {
+        <mat-error>{{ 'common.dialog.maxLength' | t: { max: 100 } }}</mat-error>
+      } @else {
+        <mat-error>{{ 'common.dialog.required' | t }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>{{ 'alerts.dialog.type' | t }}</mat-label>
+      <mat-select formControlName="type">
+        @for (t of types; track t) {
+          <mat-option [value]="t">{{ typeKeys[t] | t }}</mat-option>
+        }
+      </mat-select>
+      <mat-hint>{{ typeHintKeys[type()] | t }}</mat-hint>
+    </mat-form-field>
+
+    @if (type() !== 'DEVICE_OFFLINE') {
+      <mat-form-field>
+        <mat-label>{{ (type() === 'BATTERY_BELOW' ? 'alerts.dialog.thresholdBattery' : 'alerts.dialog.thresholdDose') | t }}</mat-label>
+        <input matInput type="number" inputmode="decimal" formControlName="threshold" min="0"
+               [attr.max]="thresholdMax()" [attr.step]="thresholdStep()" required />
+        <span matTextSuffix>{{ thresholdUnit() }}</span>
+        @if (type() === 'DOSE_RATE_ABOVE') {
+          <mat-hint>{{ 'alerts.dialog.thresholdDoseHint' | t: { example: dose.format(0.3) } }}</mat-hint>
+        }
+        @if (form.controls.threshold.hasError('range')) {
+          <mat-error>{{ 'alerts.dialog.thresholdRange' | t: { max: (thresholdMax() | num) + ' ' + thresholdUnit() } }}</mat-error>
+        } @else {
+          <mat-error>{{ 'alerts.dialog.thresholdRequired' | t }}</mat-error>
+        }
+      </mat-form-field>
+    }
+
+    <mat-form-field>
+      <mat-label>{{ 'alerts.dialog.device' | t }}</mat-label>
+      <mat-select formControlName="deviceId">
+        <mat-option [value]="null">{{ 'alerts.rules.allDevices' | t }}</mat-option>
+        @for (device of devices; track device.id) {
+          <mat-option [value]="device.id">{{ device.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>{{ 'alerts.dialog.cooldown' | t }}</mat-label>
+      <input matInput type="number" inputmode="numeric" formControlName="cooldownMinutes" min="0" [attr.max]="maxCooldown"
+             step="1" required />
+      <span matTextSuffix>{{ 'alerts.dialog.minutes' | t }}</span>
+      <mat-hint>{{ 'alerts.dialog.cooldownHint' | t }}</mat-hint>
+      <mat-error>{{ 'alerts.dialog.cooldownRange' | t: { max: maxCooldown } }}</mat-error>
+    </mat-form-field>
+
+    <div class="toggles">
+      <mat-slide-toggle formControlName="notifyPush">
+        <span class="toggle-label">{{ 'alerts.dialog.notifyPush' | t }}</span>
+        <span class="toggle-hint">{{ 'alerts.dialog.notifyPushHint' | t }}</span>
+      </mat-slide-toggle>
+      <mat-slide-toggle formControlName="enabled">
+        <span class="toggle-label">{{ 'alerts.dialog.enabled' | t }}</span>
+      </mat-slide-toggle>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button matButton type="button" (click)="cancel()">{{ 'common.actions.cancel' | t }}</button>
+    <button matButton="filled" type="submit" [disabled]="saving()">
+      @if (saving()) {
+        <mat-spinner diameter="18" aria-hidden="true" />
+      }
+      {{ (isEdit ? 'common.actions.save' : 'alerts.rules.add') | t }}
+    </button>
+  </mat-dialog-actions>
+</form>

@@ -1,0 +1,174 @@
+:host {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(400px, 520px);
+  min-height: 100dvh;
+  background: var(--mat-sys-surface);
+}
+
+// ---------------------------------------------------------------- contour panel
+
+.terrain {
+  position: relative;
+  overflow: hidden;
+  background: var(--mat-sys-surface-container-low);
+  border-inline-end: 1px solid var(--mat-sys-outline-variant);
+
+  svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.contour {
+  fill: none;
+  stroke: var(--mat-sys-outline-variant);
+  stroke-width: 1.2;
+
+  &.index {
+    stroke: var(--mat-sys-outline);
+    stroke-width: 2;
+  }
+}
+
+.track-halo {
+  fill: none;
+  stroke: var(--mat-sys-surface-container-low);
+  stroke-width: 14;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.track {
+  fill: none;
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+
+.caption {
+  position: absolute;
+  left: clamp(24px, 5vw, 64px);
+  bottom: clamp(24px, 6vh, 64px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-3);
+  max-width: 40ch;
+  padding: var(--app-space-4) var(--app-space-5) var(--app-space-4) 0;
+  background: color-mix(in srgb, var(--mat-sys-surface-container-low) 82%, transparent);
+  border-radius: 0 var(--app-radius-card) var(--app-radius-card) 0;
+}
+
+.wordmark {
+  max-width: 12ch;
+  font-size: clamp(32px, 3.6vw, 48px);
+  line-height: 1.05;
+  font-weight: 600;
+  font-stretch: 125%;
+  letter-spacing: -0.01em;
+  color: var(--mat-sys-on-surface);
+}
+
+.tagline {
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+// ---------------------------------------------------------------- form panel
+
+.panel {
+  display: flex;
+  align-items: center;
+  padding: var(--app-space-6) clamp(24px, 5vw, 56px);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-5);
+  width: 100%;
+  max-width: 400px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-3);
+  font-size: 16px;
+}
+
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-3);
+}
+
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--app-space-2);
+  padding: var(--app-space-3);
+  border-radius: var(--app-radius-chip);
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+
+  mat-icon {
+    flex: none;
+  }
+}
+
+.submit {
+  height: 48px;
+  margin-top: var(--app-space-2);
+
+  mat-spinner {
+    display: inline-block;
+    margin-inline-end: var(--app-space-2);
+    vertical-align: middle;
+    --mat-progress-spinner-active-indicator-color: currentColor;
+  }
+}
+
+.hint {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.preferences {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--app-space-3);
+  padding-top: var(--app-space-4);
+  border-top: 1px solid var(--mat-sys-outline-variant);
+}
+
+// ---------------------------------------------------------------- narrow screens: terrain becomes a top band
+
+@media (max-width: 899.98px) {
+  :host {
+    grid-template-columns: 1fr;
+    grid-template-rows: 168px 1fr;
+  }
+
+  .terrain {
+    border-inline-end: 0;
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+  }
+
+  .caption {
+    display: none;
+  }
+
+  .panel {
+    align-items: flex-start;
+    padding: var(--app-space-5) var(--app-gutter) var(--app-space-6);
+  }
+}

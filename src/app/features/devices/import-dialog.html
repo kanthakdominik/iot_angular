@@ -1,0 +1,141 @@
+<h2 mat-dialog-title>{{ 'devices.import.title' | t }}</h2>
+
+<mat-dialog-content>
+  @switch (step()) {
+    @case ('done') {
+      @if (result(); as r) {
+        <div class="summary">
+          <h3 #summaryHeading tabindex="-1" class="summary-title">
+            <mat-icon aria-hidden="true">task_alt</mat-icon>
+            {{ 'devices.import.doneTitle' | t: { count: r.imported } }}
+          </h3>
+          <div class="app-grid tiles" style="--app-grid-min: 108px">
+            <app-stat-tile [label]="'devices.import.files' | t" [value]="r.files" />
+            <app-stat-tile [label]="'devices.import.lines' | t" [value]="r.lines" />
+            <app-stat-tile [label]="'devices.import.imported' | t" [value]="r.imported" />
+            <app-stat-tile [label]="'devices.import.duplicates' | t" [value]="r.duplicates" />
+            <app-stat-tile [label]="'devices.import.invalid' | t" [value]="r.invalid" />
+          </div>
+          @if (r.imported === 0 && r.duplicates > 0) {
+            <p class="note">{{ 'devices.import.allDuplicates' | t }}</p>
+          }
+          @if (r.invalid > 0) {
+            <p class="note warn">
+              <mat-icon aria-hidden="true">warning</mat-icon>
+              <span>{{ 'devices.import.invalidHint' | t: { count: r.invalid } }}</span>
+            </p>
+          }
+          @if (r.routes.length) {
+            <table class="routes">
+              <caption class="app-visually-hidden">{{ 'devices.import.routesCaption' | t }}</caption>
+              <thead>
+                <tr>
+                  <th scope="col">{{ 'devices.import.route' | t }}</th>
+                  <th scope="col" class="num">{{ 'devices.import.imported' | t }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (route of r.routes; track route.routeId) {
+                  <tr>
+                    <td>
+                      <a [routerLink]="['/routes', route.routeId]" (click)="close()">
+                        {{ 'devices.import.routeNo' | t: { no: route.deviceRouteNo } }}
+                      </a>
+                    </td>
+                    <td class="num app-num">{{ route.imported | num }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+      }
+    }
+    @default {
+      <p class="intro app-measure">{{ 'devices.import.intro' | t: { name: deviceName } }}</p>
+
+      <div class="drop" [class.over]="dragOver()" [class.busy]="step() === 'uploading'"
+           (dragenter)="dragEnter($event)" (dragover)="dragOverZone($event)" (dragleave)="dragLeave()"
+           (drop)="drop($event)">
+        <mat-icon class="drop-icon" aria-hidden="true">upload_file</mat-icon>
+        <p>{{ 'devices.import.dropHere' | t }}</p>
+        <button matButton="outlined" type="button" (click)="picker.click()" [disabled]="step() === 'uploading'">
+          <mat-icon aria-hidden="true">folder_open</mat-icon>
+          {{ 'devices.import.choose' | t }}
+        </button>
+        <p class="limits">{{ 'devices.import.limits' | t: { max: maxFiles, size: (maxBytes | fileSize) } }}</p>
+        <input #picker type="file" class="app-visually-hidden" multiple accept=".jsonl,.txt" tabindex="-1"
+               aria-hidden="true" (change)="picked(picker)" />
+      </div>
+
+      @if (rejected().length) {
+        <p class="message error" role="alert">
+          <mat-icon aria-hidden="true">block</mat-icon>
+          <span>{{ 'devices.import.rejected' | t: { names: rejected().join(', ') } }}</span>
+        </p>
+      }
+
+      @if (files().length) {
+        <div class="files-head">
+          <span>{{ 'devices.import.selected' | t: { count: files().length } }}</span>
+          <span class="app-num" [class.over-limit]="tooLarge()">{{ totalBytes() | fileSize }}</span>
+        </div>
+        <ul class="files">
+          @for (file of files(); track file) {
+            <li>
+              <mat-icon aria-hidden="true">description</mat-icon>
+              <span class="name">{{ file.name }}</span>
+              <span class="size app-num">{{ file.size | fileSize }}</span>
+              @if (step() === 'select') {
+                <button matIconButton type="button" (click)="remove(file)"
+                        [attr.aria-label]="'devices.import.remove' | t: { name: file.name }"
+                        [matTooltip]="'devices.import.remove' | t: { name: file.name }">
+                  <mat-icon aria-hidden="true">close</mat-icon>
+                </button>
+              }
+            </li>
+          }
+        </ul>
+      }
+
+      @if (tooMany()) {
+        <p class="message error" role="alert">
+          <mat-icon aria-hidden="true">error</mat-icon>
+          <span>{{ 'devices.import.tooMany' | t: { max: maxFiles } }}</span>
+        </p>
+      }
+      @if (tooLarge()) {
+        <p class="message error" role="alert">
+          <mat-icon aria-hidden="true">error</mat-icon>
+          <span>{{ 'devices.import.tooLarge' | t: { size: (maxBytes | fileSize) } }}</span>
+        </p>
+      }
+      @if (error(); as message) {
+        <p class="message error" role="alert">
+          <mat-icon aria-hidden="true">error</mat-icon>
+          <span>{{ message }}</span>
+        </p>
+      }
+
+      @if (step() === 'uploading') {
+        <div class="progress" role="status">
+          <span>{{ 'devices.import.uploading' | t: { count: files().length } }}</span>
+          <mat-progress-bar mode="indeterminate" [attr.aria-label]="'devices.import.uploading' | t: { count: files().length }" />
+        </div>
+      }
+    }
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  @if (step() === 'done') {
+    <button matButton="filled" type="button" (click)="close()">{{ 'common.actions.close' | t }}</button>
+  } @else {
+    <button matButton type="button" (click)="close()" [disabled]="step() === 'uploading'">
+      {{ 'common.actions.cancel' | t }}
+    </button>
+    <button matButton="filled" type="button" (click)="upload()" [disabled]="!canUpload() || step() === 'uploading'">
+      {{ 'devices.import.submit' | t: { count: files().length } }}
+    </button>
+  }
+</mat-dialog-actions>

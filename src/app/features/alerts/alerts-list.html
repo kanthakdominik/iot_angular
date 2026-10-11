@@ -1,0 +1,47 @@
+<div class="toolbar">
+  <mat-button-toggle-group [value]="state()" (change)="setState($event)" hideSingleSelectionIndicator
+                           [attr.aria-label]="'alerts.filter' | t">
+    <mat-button-toggle value="all">{{ 'alerts.all' | t }}</mat-button-toggle>
+    <mat-button-toggle value="open">
+      {{ 'alerts.open' | t }}
+      @if (store.count() > 0) {
+        <span class="count app-num">{{ store.count() }}</span>
+      }
+    </mat-button-toggle>
+  </mat-button-toggle-group>
+  <span class="spacer"></span>
+  @if (auth.isAdmin() && store.count() > 0) {
+    <button matButton="outlined" type="button" (click)="ackAll()" [disabled]="busy() !== null">
+      <mat-icon aria-hidden="true">done_all</mat-icon>
+      {{ 'alerts.ackAll' | t }}
+    </button>
+  }
+</div>
+
+<mat-card class="list-card" [attr.aria-busy]="alerts.isLoading()">
+  @if (alerts.error() && !alerts.hasValue()) {
+    <app-empty-state icon="cloud_off" [title]="'common.states.loadFailed' | t"
+                     [actionLabel]="'common.actions.retry' | t" (action)="alerts.reload()" />
+  } @else if (!alerts.hasValue()) {
+    <app-skeleton shape="text" [lines]="6" />
+    <span class="app-visually-hidden">{{ 'common.states.loading' | t }}</span>
+  } @else if (list().length === 0) {
+    @if (state() === 'open') {
+      <app-empty-state icon="check_circle" [title]="'alerts.emptyOpen' | t" [text]="'alerts.emptyOpenText' | t" />
+    } @else {
+      <app-empty-state icon="notifications_none" [title]="'alerts.emptyAll' | t" [text]="'alerts.emptyAllText' | t" />
+    }
+  } @else {
+    <div role="list" [attr.aria-label]="'alerts.listLabel' | t">
+      @for (alert of list(); track alert.id) {
+        <app-alert-item [alert]="alert" [canAck]="auth.isAdmin()" [busy]="busy() === alert.id || busy() === 'all'"
+                        (ack)="ack($event)" />
+      }
+    </div>
+  }
+  @if (total() > pageSize) {
+    <mat-paginator [length]="total()" [pageIndex]="page()" [pageSize]="pageSize" hidePageSize showFirstLastButtons
+                   (page)="setPage($event)" />
+  }
+</mat-card>
+<div class="app-visually-hidden" aria-live="polite">{{ announcement() }}</div>

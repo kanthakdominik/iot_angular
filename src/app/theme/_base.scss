@@ -1,0 +1,134 @@
+// Base element styles, layout helpers, focus and motion rules.
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  letter-spacing: var(--mat-sys-body-medium-tracking);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: var(--mat-sys-primary);
+}
+
+img, svg {
+  max-width: 100%;
+}
+
+::selection {
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+// keyboard focus: visible ring for everything that does not draw its own focus state
+:focus-visible {
+  outline: var(--app-focus-ring);
+  outline-offset: 2px;
+}
+
+// Material buttons, inputs and list items show their own focus indicator
+.mat-mdc-button-base:focus-visible,
+.mat-mdc-input-element:focus-visible,
+.mat-mdc-list-item:focus-visible,
+.mat-mdc-menu-item:focus-visible {
+  outline: none;
+}
+
+.app-visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// Material Symbols: filled variant (active navigation)
+.app-icon-filled {
+  font-variation-settings: 'FILL' 1;
+}
+
+// ---------------------------------------------------------------- page layout
+
+// Standard page: left-aligned content, max. 1440 px.
+.app-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-5);
+  max-width: var(--app-content-max);
+  padding: var(--app-space-5) var(--app-gutter) var(--app-space-6);
+}
+
+// Full-width pages (route view, map): no padding, no max width.
+.app-page-full {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+// vertical rhythm / inline groups
+.app-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-4);
+}
+
+.app-cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--app-space-2);
+}
+
+// responsive tile grid (stat tiles, cards)
+.app-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--app-grid-min, 160px)), 1fr));
+  gap: var(--app-space-3);
+}
+
+// ---------------------------------------------------------------- dialogs
+
+.app-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--app-space-2);
+}
+
+// ---------------------------------------------------------------- snackbar
+
+.mat-mdc-snack-bar-container {
+  // above the bottom navigation on phones
+  @media (max-width: 599.98px) {
+    margin-bottom: calc(var(--app-bottom-nav-height) + 8px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+// ---------------------------------------------------------------- motion
+
+// Motion only where something changed (UI.md §1); reduced motion switches it off entirely.
+// Durations are shortened instead of removed so `animationend` / `transitionend` listeners still fire.
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

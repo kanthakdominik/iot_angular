@@ -1,0 +1,242 @@
+.device-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: var(--app-space-4);
+}
+
+.kpis {
+  app-stat-tile.warn {
+    border-color: var(--mat-sys-tertiary);
+  }
+
+  .tile-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    font-size: 12px;
+    line-height: 16px;
+    text-decoration: none;
+
+    &:hover .text {
+      text-decoration: underline;
+    }
+
+    .text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .swatch {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
+
+  .tile-hint {
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.row {
+  display: grid;
+  gap: var(--app-space-5);
+  min-width: 0;
+
+  > section {
+    min-width: 0;
+  }
+}
+
+.route-activity {
+  @media (min-width: 1280px) {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  }
+}
+
+.halves {
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.last-route {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--app-space-4);
+  padding: var(--app-space-4);
+
+  @media (min-width: 600px) and (max-width: 1279.98px), (min-width: 1600px) {
+    grid-template-columns: minmax(160px, 2fr) minmax(0, 3fr);
+  }
+}
+
+.cover {
+  display: block;
+  align-self: start;
+}
+
+.route-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+  min-width: 0;
+}
+
+.route-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--app-space-2);
+
+  h3 {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: var(--mat-sys-label-medium);
+  color: var(--app-live);
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--app-live);
+  }
+}
+
+.route-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--app-space-1) var(--app-space-4);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--mat-sys-on-surface-variant);
+
+  > * {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  mat-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+  }
+}
+
+.spark {
+  margin: var(--app-space-1) 0;
+}
+
+.route-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--app-space-3) var(--app-space-4);
+  margin: 0;
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  dt {
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  dd {
+    margin: 0;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+    font-stretch: 112%;
+  }
+}
+
+.activity-card {
+  padding: var(--app-space-4);
+}
+
+.list-card {
+  padding: 0 var(--app-space-4);
+
+  > app-skeleton,
+  > app-empty-state {
+    margin: var(--app-space-4) 0;
+  }
+}
+
+.quiet {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-2);
+  padding: var(--app-space-5) 0;
+  color: var(--mat-sys-on-surface-variant);
+
+  mat-icon {
+    color: var(--mat-sys-outline);
+  }
+}
+
+.welcome {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-5);
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: var(--app-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    gap: var(--app-space-3);
+    padding: var(--app-space-4);
+    border: 1px solid var(--mat-sys-outline-variant);
+    border-radius: var(--app-radius-card);
+  }
+
+  p {
+    margin-top: 4px;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.step-no {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+  font-weight: 600;
+}

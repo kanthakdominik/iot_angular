@@ -1,0 +1,141 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  // the shell's main area minus the top bar (and the bottom navigation on phones, already padded by the shell)
+  height: calc(100dvh - var(--app-top-bar-height));
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--app-space-2) var(--app-space-3);
+  padding: var(--app-space-3) var(--app-gutter) var(--app-space-2);
+}
+
+.dates {
+  flex: 0 1 280px;
+}
+
+.device {
+  flex: 0 1 220px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.metric {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-2);
+}
+
+.metric-label {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.map-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 320px;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+}
+
+.map {
+  position: absolute;
+  inset: 0;
+}
+
+.progress {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 1000;
+}
+
+.status {
+  position: absolute;
+  left: 50%;
+  bottom: var(--app-space-4);
+  z-index: 1000;
+  display: flex;
+  gap: var(--app-space-2);
+  padding: 4px var(--app-space-3);
+  border-radius: var(--app-radius-chip);
+  background: color-mix(in srgb, var(--mat-sys-surface-container-high) 92%, transparent);
+  box-shadow: var(--mat-sys-level1);
+  font-size: 12px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  pointer-events: none;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.muted {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.notice {
+  position: absolute;
+  top: var(--app-space-3);
+  left: 50%;
+  z-index: 1000;
+  max-width: min(480px, calc(100% - 140px));
+  padding: 6px var(--app-space-3);
+  border-radius: var(--app-radius-chip);
+  background: var(--mat-sys-inverse-surface);
+  color: var(--mat-sys-inverse-on-surface);
+  font-size: 12px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 999;
+  display: grid;
+  place-items: center;
+  padding: var(--app-space-4);
+  pointer-events: none;
+}
+
+.overlay-card {
+  max-width: 420px;
+  border-style: solid;
+  background: color-mix(in srgb, var(--mat-sys-surface) 94%, transparent);
+  box-shadow: var(--mat-sys-level2);
+
+  &.interactive {
+    pointer-events: auto;
+  }
+}
+
+:host ::ng-deep .app-grid-tooltip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+@media (max-width: 599.98px) {
+  .layout {
+    height: calc(100dvh - var(--app-top-bar-height) - var(--app-bottom-nav-height) - env(safe-area-inset-bottom));
+  }
+
+  .dates, .device {
+    flex: 1 1 100%;
+  }
+
+  .spacer {
+    display: none;
+  }
+
+  .status {
+    bottom: var(--app-space-2);
+  }
+}

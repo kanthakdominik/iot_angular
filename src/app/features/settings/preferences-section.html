@@ -1,0 +1,78 @@
+<div class="section-head">
+  <div>
+    <h2>{{ 'settings.preferences.title' | t }}</h2>
+    <p class="app-muted app-measure">{{ 'settings.preferences.intro' | t }}</p>
+  </div>
+  <span class="save-state" role="status" [attr.data-state]="state()">
+    @switch (state()) {
+      @case ('saving') { {{ 'settings.preferences.saving' | t }} }
+      @case ('saved') { <mat-icon aria-hidden="true">cloud_done</mat-icon>{{ 'settings.preferences.saved' | t }} }
+      @case ('error') { <mat-icon aria-hidden="true">error</mat-icon>{{ 'settings.preferences.notSaved' | t }} }
+    }
+  </span>
+</div>
+
+<div class="rows">
+  <div class="row">
+    <div class="row-text">
+      <h3 id="pref-theme">{{ 'settings.theme' | t }}</h3>
+      <p>{{ 'settings.preferences.themeHint' | t }}</p>
+    </div>
+    <mat-button-toggle-group [value]="prefs().theme" (change)="setTheme($event)" hideSingleSelectionIndicator
+                             aria-labelledby="pref-theme">
+      @for (theme of themes; track theme) {
+        <mat-button-toggle [value]="theme">
+          <mat-icon aria-hidden="true">{{ themeIcons[theme] }}</mat-icon>
+          {{ themeKeys[theme] | t }}
+        </mat-button-toggle>
+      }
+    </mat-button-toggle-group>
+  </div>
+
+  <div class="row">
+    <div class="row-text">
+      <h3 id="pref-language">{{ 'settings.language' | t }}</h3>
+      <p>{{ 'settings.preferences.languageHint' | t }}</p>
+    </div>
+    <mat-button-toggle-group [value]="prefs().language" (change)="setLanguage($event)" hideSingleSelectionIndicator
+                             aria-labelledby="pref-language">
+      @for (lang of langs; track lang) {
+        <mat-button-toggle [value]="lang" [attr.lang]="lang">{{ langKeys[lang] | t }}</mat-button-toggle>
+      }
+    </mat-button-toggle-group>
+  </div>
+
+  <div class="row">
+    <div class="row-text">
+      <h3 id="pref-unit">{{ 'settings.doseUnit' | t }}</h3>
+      <p>{{ 'settings.preferences.doseUnitHint' | t }}</p>
+    </div>
+    <div class="unit-control">
+      <mat-button-toggle-group [value]="prefs().doseUnit" (change)="setUnit($event)" hideSingleSelectionIndicator
+                               aria-labelledby="pref-unit">
+        @for (unit of units; track unit) {
+          <mat-button-toggle [value]="unit">{{ unitLabels()[unit] }}</mat-button-toggle>
+        }
+      </mat-button-toggle-group>
+      <div class="preview">
+        <app-dose-readout [value]="sample" [label]="'settings.preferences.preview' | t" size="sm" />
+        <p class="equivalents app-num">{{ equivalents() }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="row-text">
+      <h3 id="pref-layer">{{ 'settings.mapLayer' | t }}</h3>
+      <p>{{ 'settings.preferences.mapLayerHint' | t }}</p>
+    </div>
+    <mat-form-field class="layer-field">
+      <mat-label>{{ 'settings.mapLayer' | t }}</mat-label>
+      <mat-select [value]="prefs().mapLayer" (selectionChange)="setLayer($event)">
+        @for (layer of layers; track layer) {
+          <mat-option [value]="layer">{{ layerKeys[layer] | t }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+</div>

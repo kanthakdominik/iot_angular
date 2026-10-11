@@ -1,0 +1,140 @@
+:host {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--app-space-3);
+  align-items: start;
+  padding: var(--app-space-3) 0;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+:host(:last-child) {
+  border-bottom: 0;
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface-variant);
+
+  mat-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+  }
+}
+
+:host(.open) .icon {
+  background: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--app-space-2);
+}
+
+.rule {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.badge {
+  padding: 0 6px;
+  border-radius: 6px;
+  background: var(--mat-sys-tertiary);
+  color: var(--mat-sys-on-tertiary);
+  font-size: 11px;
+  line-height: 18px;
+  font-weight: 500;
+}
+
+.message {
+  color: var(--mat-sys-on-surface-variant);
+  overflow-wrap: anywhere;
+}
+
+:host(:not(.open)) .rule {
+  font-weight: 500;
+}
+
+.values {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--app-space-2);
+  margin-top: 2px;
+
+  .value {
+    font-weight: 600;
+    font-stretch: 112%;
+  }
+
+  .threshold {
+    font-size: 12px;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.meta,
+.acked {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px var(--app-space-3);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--mat-sys-on-surface-variant);
+
+  a,
+  > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  a {
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  mat-icon {
+    width: 14px;
+    height: 14px;
+    font-size: 14px;
+  }
+}
+
+.acked {
+  margin-top: 2px;
+}
+
+.ack {
+  align-self: center;
+}
+
+@media (max-width: 599.98px) {
+  :host:not(.compact) {
+    grid-template-columns: auto minmax(0, 1fr);
+
+    .ack {
+      grid-column: 2;
+      justify-self: start;
+    }
+  }
+}

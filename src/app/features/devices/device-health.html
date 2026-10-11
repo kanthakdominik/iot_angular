@@ -1,0 +1,39 @@
+<div class="head">
+  <h3>{{ 'devices.health.title' | t }}</h3>
+  <mat-button-toggle-group [value]="range()" (change)="setRange($event)" hideSingleSelectionIndicator
+                           [attr.aria-label]="'devices.health.range' | t">
+    @for (r of ranges; track r) {
+      <mat-button-toggle [value]="r">{{ rangeKeys[r] | t }}</mat-button-toggle>
+    }
+  </mat-button-toggle-group>
+</div>
+
+<div class="charts" [attr.aria-busy]="health.isLoading()">
+  @if (health.error() && !health.hasValue()) {
+    <app-empty-state icon="cloud_off" [title]="'common.states.loadFailed' | t"
+                     [actionLabel]="'common.actions.retry' | t" (action)="health.reload()" />
+  } @else {
+    <figure class="chart">
+      <figcaption>{{ 'devices.health.battery' | t }}</figcaption>
+      <div class="canvas-box" [class.hidden]="!hasBattery()">
+        <canvas #batteryCanvas role="img" [attr.aria-label]="'devices.health.batteryAria' | t: { count: battery().pct.length }"></canvas>
+      </div>
+      @if (!health.hasValue()) {
+        <app-skeleton height="180px" />
+      } @else if (!hasBattery()) {
+        <p class="empty">{{ 'devices.health.noData' | t }}</p>
+      }
+    </figure>
+    <figure class="chart">
+      <figcaption>{{ 'devices.health.signal' | t }}</figcaption>
+      <div class="canvas-box" [class.hidden]="!hasSignal()">
+        <canvas #signalCanvas role="img" [attr.aria-label]="'devices.health.signalAria' | t: { count: signal().length }"></canvas>
+      </div>
+      @if (!health.hasValue()) {
+        <app-skeleton height="180px" />
+      } @else if (!hasSignal()) {
+        <p class="empty">{{ 'devices.health.noData' | t }}</p>
+      }
+    </figure>
+  }
+</div>

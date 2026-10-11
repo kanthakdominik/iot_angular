@@ -1,0 +1,117 @@
+@let d = device();
+<mat-card class="card" [class.online]="d.online">
+  <div class="head">
+    <div class="titles">
+      <span class="status" [class.on]="d.online">
+        <span class="dot" aria-hidden="true"></span>
+        {{ (d.online ? 'devices.online' : 'devices.offline') | t }}
+      </span>
+      <h3 class="name"><a [routerLink]="link()">{{ name() }}</a></h3>
+      @if (name() !== d.id) {
+        <span class="id">{{ d.id }}</span>
+      }
+    </div>
+    @if (auth.isAdmin()) {
+      <button matIconButton type="button" class="menu-button" [matMenuTriggerFor]="menu"
+              [attr.aria-label]="'devices.actionsFor' | t: { name: name() }" [matTooltip]="'common.actions.more' | t">
+        <mat-icon aria-hidden="true">more_vert</mat-icon>
+      </button>
+      <mat-menu #menu="matMenu" xPosition="before">
+        <button mat-menu-item type="button" (click)="rename()">
+          <mat-icon aria-hidden="true">edit</mat-icon>
+          <span>{{ 'common.actions.rename' | t }}</span>
+        </button>
+        <button mat-menu-item type="button" (click)="importFromSd()">
+          <mat-icon aria-hidden="true">sd_card</mat-icon>
+          <span>{{ 'devices.import.action' | t }}</span>
+        </button>
+        <mat-divider />
+        <a mat-menu-item [routerLink]="link()">
+          <mat-icon aria-hidden="true">open_in_new</mat-icon>
+          <span>{{ 'devices.openDetails' | t }}</span>
+        </a>
+      </mat-menu>
+    }
+  </div>
+
+  <div class="body">
+    @if (d.online) {
+      <app-dose-readout [value]="usv()?.usv" [label]="'devices.doseRate' | t" size="md" live />
+      <p class="reading-meta">
+        @if (usv(); as r) {
+          <time [attr.datetime]="r.ts" [attr.title]="r.ts | dateTime: 'datetimeSeconds'">
+            {{ 'devices.readingAt' | t: { time: (r.ts | relativeTime) } }}
+          </time>
+        } @else {
+          <span>{{ 'devices.noReading' | t }}</span>
+        }
+      </p>
+    } @else {
+      <div class="offline">
+        <mat-icon aria-hidden="true">cloud_off</mat-icon>
+        <span>
+          {{ 'devices.offlineSince' | t }}
+          <time [attr.datetime]="d.lastSeenAt" [attr.title]="d.lastSeenAt | dateTime: 'datetimeSeconds'">
+            {{ d.lastSeenAt | relativeTime }}
+          </time>
+        </span>
+      </div>
+    }
+  </div>
+
+  <dl class="facts">
+    <div class="fact" [class.warn]="lowBattery()">
+      <dt><mat-icon aria-hidden="true">{{ batteryIcon() }}</mat-icon><span class="app-visually-hidden">{{ 'devices.battery' | t }}</span></dt>
+      <dd class="app-num" [attr.title]="d.batteryMv !== null ? ('devices.batteryMv' | t: { mv: d.batteryMv }) : null">
+        {{ d.batteryPct | num }}@if (d.batteryPct !== null) {&nbsp;%}
+      </dd>
+    </div>
+    <div class="fact">
+      <dt><mat-icon aria-hidden="true">{{ signalIcon() }}</mat-icon><span class="app-visually-hidden">{{ 'devices.signal' | t }}</span></dt>
+      <dd class="app-num" [attr.title]="d.signalCsq !== null ? ('common.signal.bars' | t: { bars: (d.signalCsq | csq: 'bars') }) : ('common.signal.unknown' | t)">
+        {{ d.signalCsq | csq }}
+      </dd>
+    </div>
+    @if (d.online) {
+      <div class="fact">
+        <dt><mat-icon aria-hidden="true">schedule</mat-icon><span class="app-visually-hidden">{{ 'devices.lastSeen' | t }}</span></dt>
+        <dd>
+          <time [attr.datetime]="d.lastSeenAt" [attr.title]="d.lastSeenAt | dateTime: 'datetimeSeconds'">{{ d.lastSeenAt | relativeTime }}</time>
+        </dd>
+      </div>
+    }
+    @if (variant() === 'list') {
+      <div class="fact">
+        <dt><mat-icon aria-hidden="true">memory</mat-icon><span class="app-visually-hidden">{{ 'devices.firmware' | t }}</span></dt>
+        <dd>{{ d.fwVersion ?? '—' }}</dd>
+      </div>
+      <div class="fact">
+        <dt><mat-icon aria-hidden="true">route</mat-icon><span class="app-visually-hidden">{{ 'devices.routes' | t }}</span></dt>
+        <dd>
+          <a [routerLink]="['/routes']" [queryParams]="{ deviceId: d.id }">{{ 'devices.routeCount' | t: { count: d.routeCount } }}</a>
+        </dd>
+      </div>
+    }
+  </dl>
+
+  @if (d.online && d.currentRouteId !== null) {
+    <a class="current-route" [routerLink]="['/routes', d.currentRouteId]">
+      <mat-icon aria-hidden="true">fiber_manual_record</mat-icon>
+      <span>{{ 'devices.currentRoute' | t: { no: d.currentRouteNo ?? d.currentRouteId } }}</span>
+      <mat-icon class="chevron" aria-hidden="true">chevron_right</mat-icon>
+    </a>
+  }
+
+  @if (auth.isAdmin()) {
+    <div class="commands">
+      <button matButton type="button" (click)="command('new-route')" [disabled]="!d.online || busy() !== null">
+        <mat-icon aria-hidden="true">add_road</mat-icon>
+        {{ 'devices.commands.newRouteShort' | t }}
+      </button>
+      <button matButton type="button" (click)="command('battery')" [disabled]="!d.online || busy() !== null">
+        <mat-icon aria-hidden="true">battery_charging_full</mat-icon>
+        {{ 'devices.commands.batteryShort' | t }}
+      </button>
+    </div>
+  }
+</mat-card>

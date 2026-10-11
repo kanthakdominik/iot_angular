@@ -1,0 +1,115 @@
+// Styles of elements rendered in the CDK overlay container (menus, command palette) – outside component hosts.
+
+// non-interactive header row inside a mat-menu (user menu)
+.app-menu-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 16px 12px;
+
+  .name {
+    font: var(--mat-sys-title-small);
+    color: var(--mat-sys-on-surface);
+  }
+
+  .role {
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.app-menu-item-active {
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.app-menu-count {
+  margin-inline-start: 8px;
+  padding: 0 6px;
+  border-radius: 8px;
+  background: var(--mat-sys-error);
+  color: var(--mat-sys-on-error);
+  font-size: 11px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+// notifications menu (layout/notifications)
+.app-notifications-menu.mat-mdc-menu-panel {
+  width: 360px;
+  max-width: calc(100vw - 32px);
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px 8px;
+
+    .title {
+      font: var(--mat-sys-title-small);
+    }
+
+    .count {
+      padding: 0 8px;
+      border-radius: 10px;
+      background: var(--mat-sys-error);
+      color: var(--mat-sys-on-error);
+      font-size: 12px;
+      line-height: 20px;
+    }
+  }
+
+  .state {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  .mat-mdc-menu-item.alert {
+    height: auto;
+    min-height: 64px;
+    padding-block: 8px;
+    align-items: flex-start;
+
+    .mat-icon {
+      margin-top: 2px;
+      color: var(--mat-sys-on-surface-variant);
+
+      &.dose {
+        color: var(--mat-sys-tertiary);
+      }
+    }
+  }
+
+  .text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    white-space: normal;
+  }
+
+  .message {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 20px;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+// command palette (layout/command-palette)
+.app-palette-backdrop {
+  background: color-mix(in srgb, var(--mat-sys-scrim) 32%, transparent);
+}

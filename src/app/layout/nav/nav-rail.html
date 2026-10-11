@@ -1,0 +1,31 @@
+<nav [attr.aria-label]="'nav.mainLabel' | t">
+  <a class="brand" routerLink="/dashboard" [attr.aria-label]="'nav.home' | t">
+    <img src="favicon.svg" alt="" width="32" height="32" />
+  </a>
+  <ul class="items">
+    @for (item of mainItems; track item.path) {
+      <li>
+        <ng-container [ngTemplateOutlet]="link" [ngTemplateOutletContext]="{ $implicit: item }" />
+      </li>
+    }
+  </ul>
+  <ul class="items bottom">
+    <li>
+      <ng-container [ngTemplateOutlet]="link" [ngTemplateOutletContext]="{ $implicit: settingsItem }" />
+    </li>
+  </ul>
+</nav>
+
+<ng-template #link let-item>
+  <a class="item" [routerLink]="item.path" routerLinkActive="active" ariaCurrentWhenActive="page"
+     #rla="routerLinkActive" [matTooltip]="collapsed() ? (item.labelKey | t) : ''" matTooltipPosition="right">
+    <span class="indicator">
+      <mat-icon [class.app-icon-filled]="rla.isActive" [matBadge]="badge()" matBadgeSize="small"
+                [matBadgeHidden]="!item.alertsBadge || alerts.count() === 0" aria-hidden="true">{{ item.icon }}</mat-icon>
+    </span>
+    <span class="label" [class.app-visually-hidden]="collapsed()">{{ item.labelKey | t }}</span>
+    @if (item.alertsBadge && alerts.count() > 0) {
+      <span class="app-visually-hidden">({{ alerts.count() }})</span>
+    }
+  </a>
+</ng-template>

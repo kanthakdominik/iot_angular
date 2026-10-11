@@ -1,0 +1,50 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-3);
+  min-width: 0;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--app-space-2);
+}
+
+.charts {
+  display: grid;
+  gap: var(--app-space-4);
+}
+
+.chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+  margin: 0;
+  min-width: 0;
+}
+
+figcaption {
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.canvas-box {
+  position: relative;
+  height: 200px;
+
+  &.hidden {
+    display: none;
+  }
+}
+
+.empty {
+  display: grid;
+  place-items: center;
+  height: 120px;
+  border: 1px dashed var(--mat-sys-outline-variant);
+  border-radius: var(--app-radius-chip);
+  color: var(--mat-sys-on-surface-variant);
+}

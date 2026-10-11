@@ -1,0 +1,80 @@
+<section class="terrain">
+  <svg [attr.viewBox]="viewBox" preserveAspectRatio="xMidYMid slice" role="img"
+       [attr.aria-label]="'auth.login.illustration' | t">
+    @for (level of terrain.contours; track $index) {
+      <path class="contour" [class.index]="level.index" [attr.d]="level.d" />
+    }
+    <path class="track-halo" [attr.d]="terrain.trackOutline" />
+    @for (segment of terrain.track; track $index) {
+      <path class="track" [attr.d]="segment.d" [attr.stroke]="segment.color" />
+    }
+  </svg>
+  <div class="caption">
+    <p class="wordmark">{{ 'common.appName' | t }}</p>
+    <p class="tagline">{{ 'common.appTagline' | t }}</p>
+  </div>
+</section>
+
+<main class="panel">
+  <div class="content">
+    <div class="brand">
+      <img src="favicon.svg" alt="" width="36" height="36" />
+      <span class="app-heading">{{ 'common.appName' | t }}</span>
+    </div>
+
+    <div class="heading">
+      <h1>{{ 'auth.login.heading' | t }}</h1>
+      <p class="app-muted">{{ 'auth.login.intro' | t }}</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      @if (error(); as message) {
+        <div class="error" role="alert">
+          <mat-icon aria-hidden="true">error</mat-icon>
+          <span>{{ message }}</span>
+        </div>
+      }
+
+      <mat-form-field>
+        <mat-label>{{ 'auth.login.username' | t }}</mat-label>
+        <input matInput formControlName="username" autocomplete="username" autocapitalize="off"
+               spellcheck="false" required />
+        <mat-error>{{ 'auth.login.usernameRequired' | t }}</mat-error>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>{{ 'auth.login.password' | t }}</mat-label>
+        <input matInput formControlName="password" [type]="showPassword() ? 'text' : 'password'"
+               autocomplete="current-password" required />
+        <button matIconButton matIconSuffix type="button" (click)="showPassword.set(!showPassword())"
+                [attr.aria-label]="(showPassword() ? 'auth.login.hidePassword' : 'auth.login.showPassword') | t"
+                [attr.aria-pressed]="showPassword()">
+          <mat-icon aria-hidden="true">{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+        <mat-error>{{ 'auth.login.passwordRequired' | t }}</mat-error>
+      </mat-form-field>
+
+      <button matButton="filled" type="submit" class="submit" [disabled]="pending()">
+        @if (pending()) {
+          <mat-spinner diameter="18" aria-hidden="true" />
+        }
+        {{ 'auth.login.submit' | t }}
+      </button>
+    </form>
+
+    <p class="hint app-muted">{{ 'auth.login.sharedHint' | t }}</p>
+
+    <div class="preferences">
+      <mat-button-toggle-group [value]="i18n.lang()" (change)="setLanguage($event)" hideSingleSelectionIndicator
+                               [attr.aria-label]="'common.language.label' | t">
+        @for (language of languages; track language.lang) {
+          <mat-button-toggle [value]="language.lang" [attr.lang]="language.lang">{{ language.labelKey | t }}</mat-button-toggle>
+        }
+      </mat-button-toggle-group>
+      <button matIconButton type="button" (click)="theme.cycle()" [attr.aria-label]="themeLabel()"
+              [matTooltip]="themeLabel()">
+        <mat-icon aria-hidden="true">{{ themeIcon() }}</mat-icon>
+      </button>
+    </div>
+  </div>
+</main>

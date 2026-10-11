@@ -1,0 +1,27 @@
+@if (label()) {
+  <span class="label">{{ label() }}</span>
+}
+<div class="reading">
+  <span class="value app-num-expanded">{{ parts().value }}</span>
+  <span class="unit">{{ parts().unit }}</span>
+  @if (live()) {
+    <span class="live" aria-hidden="true"><span #pulse class="ring"></span></span>
+  }
+</div>
+@if (showScale()) {
+  <div class="scale" aria-hidden="true">
+    <div class="bar" [style.background]="gradient()"></div>
+    @if (position() !== null) {
+      <div class="needle-track" [style.transform]="'translateX(' + position() + '%)'">
+        <span class="needle" [class.overflow]="overflow()" [style.--app-needle-color]="needleColor()"></span>
+      </div>
+    }
+    @if (size() !== 'sm') {
+      <div class="ticks">
+        @for (tick of ticks(); track tick.position) {
+          <span class="tick" [style.left.%]="tick.position">{{ tick.label }}</span>
+        }
+      </div>
+    }
+  </div>
+}

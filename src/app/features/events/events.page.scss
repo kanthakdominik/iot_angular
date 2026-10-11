@@ -1,0 +1,35 @@
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--app-space-3);
+}
+
+.device-filter {
+  width: min(280px, 100%);
+}
+
+.type-filter {
+  flex: 1 1 480px;
+  min-width: 0;
+}
+
+.list-card {
+  padding: 0 var(--app-space-4);
+
+  > app-skeleton,
+  > app-empty-state {
+    margin: var(--app-space-4) 0;
+  }
+}
+
+.reloading {
+  opacity: 0.6;
+  transition: opacity var(--app-duration-short) var(--app-ease);
+}
+
+mat-paginator {
+  margin: 0 calc(-1 * var(--app-space-4));
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  background: transparent;
+}

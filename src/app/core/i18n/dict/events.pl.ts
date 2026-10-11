@@ -1,0 +1,33 @@
+export const eventsPl = {
+  title: 'Zdarzenia',
+  heading: 'Dziennik zdarzeń',
+  total: '{count, plural, =0 {Brak wpisów} one {# wpis} few {# wpisy} many {# wpisów} other {# wpisu}}',
+  listLabel: 'Zdarzenia, od najnowszych',
+  empty: 'Brak zdarzeń',
+  emptyText: 'Tu pojawią się połączenia urządzeń, nowe trasy, odczyty baterii, polecenia, alerty i importy.',
+  emptyFiltered: 'Brak zdarzeń pasujących do filtrów',
+  newEvent: 'Nowe zdarzenie: {type}. {message}',
+  routeLink: 'Trasa {id}',
+  filters: {
+    device: 'Urządzenie',
+    allDevices: 'Wszystkie urządzenia',
+    type: 'Rodzaj zdarzenia',
+    clear: 'Wyczyść filtry',
+  },
+  types: {
+    DEVICE_ONLINE: 'Urządzenie online',
+    DEVICE_OFFLINE: 'Urządzenie offline',
+    ROUTE_STARTED: 'Początek trasy',
+    BATTERY: 'Bateria',
+    DEVICE_ERROR: 'Błąd urządzenia',
+    MARKER: 'Znacznik',
+    COMMAND_SENT: 'Polecenie',
+    ALERT: 'Alert',
+    IMPORT: 'Import z karty SD',
+  },
+  severity: {
+    INFO: 'Informacja',
+    WARN: 'Ostrzeżenie',
+    ERROR: 'Błąd',
+  },
+};

@@ -1,0 +1,81 @@
+<div class="section-head">
+  <div>
+    <h2>{{ 'settings.users.title' | t }}</h2>
+    <p class="app-muted app-measure">{{ 'settings.users.intro' | t }}</p>
+  </div>
+  <button matButton="filled" type="button" (click)="add()">
+    <mat-icon aria-hidden="true">person_add</mat-icon>
+    {{ 'settings.users.add' | t }}
+  </button>
+</div>
+
+<div class="table-card" [attr.aria-busy]="users.isLoading()">
+  @if (users.error() && !users.hasValue()) {
+    <app-empty-state icon="cloud_off" [title]="'common.states.loadFailed' | t"
+                     [actionLabel]="'common.actions.retry' | t" (action)="users.reload()" />
+  } @else if (!users.hasValue()) {
+    <app-skeleton shape="text" [lines]="4" />
+  } @else {
+    <table class="users">
+      <caption class="app-visually-hidden">{{ 'settings.users.title' | t }}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{{ 'settings.account.username' | t }}</th>
+          <th scope="col">{{ 'settings.account.role' | t }}</th>
+          <th scope="col" class="created">{{ 'settings.users.created' | t }}</th>
+          <th scope="col" class="actions"><span class="app-visually-hidden">{{ 'settings.users.actions' | t }}</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (user of list(); track user.id) {
+          <tr>
+            <td>
+              <span class="username">
+                <mat-icon aria-hidden="true">{{ user.role === 'ADMIN' ? 'shield_person' : 'person' }}</mat-icon>
+                {{ user.username }}
+                @if (user.username === me()) {
+                  <span class="you">{{ 'settings.users.you' | t }}</span>
+                }
+              </span>
+            </td>
+            <td>{{ roleKeys[user.role] | t }}</td>
+            <td class="created app-num">
+              <time [attr.datetime]="user.createdAt">{{ user.createdAt | dateTime: 'date' }}</time>
+            </td>
+            <td class="actions">
+              @if (user.username !== me()) {
+                <button matIconButton type="button" [matMenuTriggerFor]="menu" [disabled]="busy() === user.id"
+                        [attr.aria-label]="'settings.users.actionsFor' | t: { name: user.username }"
+                        [matTooltip]="'common.actions.more' | t">
+                  <mat-icon aria-hidden="true">more_vert</mat-icon>
+                </button>
+                <mat-menu #menu="matMenu" xPosition="before">
+                  @if (user.role === 'VIEWER') {
+                    <button mat-menu-item type="button" (click)="setRole(user, 'ADMIN')">
+                      <mat-icon aria-hidden="true">shield_person</mat-icon>
+                      <span>{{ 'settings.users.makeAdmin' | t }}</span>
+                    </button>
+                  } @else {
+                    <button mat-menu-item type="button" (click)="setRole(user, 'VIEWER')">
+                      <mat-icon aria-hidden="true">visibility</mat-icon>
+                      <span>{{ 'settings.users.makeViewer' | t }}</span>
+                    </button>
+                  }
+                  <button mat-menu-item type="button" (click)="resetPassword(user)">
+                    <mat-icon aria-hidden="true">key</mat-icon>
+                    <span>{{ 'settings.users.resetPassword' | t }}</span>
+                  </button>
+                  <mat-divider />
+                  <button mat-menu-item type="button" class="danger" (click)="remove(user)">
+                    <mat-icon aria-hidden="true">delete</mat-icon>
+                    <span>{{ 'common.actions.delete' | t }}</span>
+                  </button>
+                </mat-menu>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>

@@ -1,0 +1,48 @@
+// Material 3 tonal palettes in the format of `ng generate @angular/material:theme-color`
+// (primary seed #2F5D8A, tertiary #8A5A00, secondary / neutral / neutral-variant derived from the primary hue,
+// error = M3 default). Tones computed with HCT (CAM16 + L*); regenerate with the schematic if the seeds change.
+@use 'sass:map';
+
+$_palettes: (
+  primary: (
+    0: #000000, 10: #001d35, 20: #013257, 25: #013e69, 30: #164975, 35: #265582, 40: #34618e,
+    50: #4e7aa9, 60: #6994c4, 70: #83afe0, 80: #9fcafd, 90: #d1e4ff, 95: #e9f1ff, 98: #f8f9ff, 99: #fdfcff,
+    100: #ffffff,
+  ),
+  secondary: (
+    0: #000000, 10: #0c1d2d, 20: #223243, 25: #2d3d4f, 30: #39485a, 35: #445467, 40: #506073,
+    50: #69788c, 60: #8292a7, 70: #9dadc2, 80: #b8c8de, 90: #d4e4fb, 95: #e9f1ff, 98: #f8f9ff, 99: #fdfcff,
+    100: #ffffff,
+  ),
+  tertiary: (
+    0: #000000, 10: #291800, 20: #452b00, 25: #543500, 30: #633f00, 35: #724a00, 40: #825501,
+    50: #a06d18, 60: #bd8631, 70: #dca049, 80: #fabb61, 90: #ffddb4, 95: #ffeedc, 98: #fff8f4, 99: #fffbff,
+    100: #ffffff,
+  ),
+  neutral: (
+    0: #000000, 4: #0c0e11, 6: #111317, 10: #1a1c1f, 12: #1e2023, 17: #282a2d, 20: #2f3034, 22: #333538,
+    24: #37393d, 25: #3a3b3f, 30: #45474a, 35: #515256, 40: #5d5e62, 50: #76777b, 60: #8f9094, 70: #aaabaf,
+    80: #c6c6ca, 87: #d9dade, 90: #e2e2e6, 92: #e8e8ec, 94: #ededf2, 95: #f0f0f5, 96: #f3f3f7, 98: #f9f9fd,
+    99: #fdfcff, 100: #ffffff,
+  ),
+  neutral-variant: (
+    0: #000000, 10: #171c23, 20: #2c3138, 25: #373c43, 30: #42474f, 35: #4e535a, 40: #5a5f67,
+    50: #727780, 60: #8c9199, 70: #a7abb4, 80: #c2c7d0, 90: #dee3ec, 95: #ecf1fa, 98: #f8f9ff, 99: #fdfcff,
+    100: #ffffff,
+  ),
+  error: (
+    0: #000000, 10: #410002, 20: #680005, 25: #7e0007, 30: #93010a, 35: #a80710, 40: #ba1a1a,
+    50: #de3730, 60: #ff5549, 70: #ff8a7d, 80: #ffb4ab, 90: #ffdad6, 95: #feedeb, 98: #fff8f7, 99: #fffbff,
+    100: #ffffff,
+  ),
+);
+
+$_rest: (
+  secondary: map.get($_palettes, secondary),
+  neutral: map.get($_palettes, neutral),
+  neutral-variant: map.get($_palettes, neutral-variant),
+  error: map.get($_palettes, error),
+);
+
+$primary-palette: map.merge(map.get($_palettes, primary), $_rest);
+$tertiary-palette: map.merge(map.get($_palettes, tertiary), $_rest);

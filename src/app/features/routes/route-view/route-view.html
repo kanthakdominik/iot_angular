@@ -1,0 +1,166 @@
+<section class="map-area" #mapFrame [attr.aria-label]="'routes.detail.mapRegion' | t">
+  <app-route-map-panel class="map"
+                       [measurements]="measurements()" [markers]="markers()" [live]="live()" [cursor]="cursor()"
+                       [activeMarkerId]="activeMarkerId()" [editable]="editable()" [fullscreenTarget]="mapFrame"
+                       [ariaLabel]="'routes.detail.mapLabel' | t: { name: route().name }"
+                       (hoverIndex)="hovered.set($event)" (selectIndex)="selectSample($event)"
+                       (markerSelect)="selectMarker($event)" (addMarkerAt)="requestMarkerAt($event)" />
+  @switch (samplesState()) {
+    @case ('loading') {
+      <div class="map-overlay" role="status">
+        <mat-progress-bar mode="indeterminate" class="map-progress" />
+        <span class="app-visually-hidden">{{ 'common.states.loading' | t }}</span>
+      </div>
+    }
+    @case ('error') {
+      <div class="map-overlay center">
+        <app-empty-state class="overlay-card" icon="cloud_off" [title]="'routes.detail.samplesFailed' | t"
+                         [actionLabel]="'common.actions.retry' | t" (action)="retry.emit()" />
+      </div>
+    }
+    @default {
+      @if (!hasSamples()) {
+        <div class="map-overlay center">
+          <app-empty-state class="overlay-card" icon="sensors" [title]="'routes.detail.noSamples' | t"
+                           [text]="(live() ? 'routes.detail.noSamplesLive' : 'routes.detail.noSamplesText') | t" />
+        </div>
+      } @else if (!hasTrack()) {
+        <div class="map-overlay top">
+          <p class="map-note"><mat-icon aria-hidden="true">location_off</mat-icon>{{ 'routes.detail.noTrack' | t }}</p>
+        </div>
+      }
+    }
+  }
+  @if (hasSamples()) {
+    <app-playback-bar class="playback" [measurements]="measurements()" [(position)]="selected" />
+  }
+</section>
+
+<aside class="side">
+  <div class="head">
+    <div class="titles">
+      <h2 class="name">{{ route().name }}</h2>
+      <div class="meta">
+        <span class="meta-item">
+          <mat-icon aria-hidden="true">sensors</mat-icon>
+          @if (publicView()) {
+            {{ route().deviceName ?? route().deviceId }}
+          } @else {
+            <a [routerLink]="['/devices', route().deviceId]">{{ route().deviceName ?? route().deviceId }}</a>
+          }
+          @if (route().deviceRouteNo !== null) {
+            <span class="muted app-num">{{ 'routes.detail.routeNo' | t: { no: route().deviceRouteNo } }}</span>
+          }
+        </span>
+        <span class="meta-item">
+          <mat-icon aria-hidden="true">calendar_today</mat-icon>
+          <span class="app-num">{{ route().startedAt | dateTime }}</span>
+        </span>
+      </div>
+    </div>
+    <div class="actions"><ng-content select="[routeActions]" /></div>
+  </div>
+  <ng-content select="[routeStatus]" />
+  @if (route().description) {
+    <p class="description">{{ route().description }}</p>
+  }
+
+  <div class="readouts">
+    <app-dose-readout class="readout-max" [value]="stats().maxUsv" [label]="'routes.stats.max' | t" size="lg"
+                      [live]="live()" />
+    <app-dose-readout class="readout-avg" [value]="stats().avgUsv" [label]="'routes.stats.avg' | t" size="sm" />
+  </div>
+
+  <div class="tiles">
+    <app-stat-tile [label]="'routes.stats.distance' | t" [value]="stats().distanceM | distance" icon="straighten"
+                   [loading]="loadingStats()" />
+    <app-stat-tile [label]="'routes.stats.duration' | t" icon="schedule"
+                   [value]="live() ? (route().startedAt | duration: null) : (durationMs() | duration)" />
+    <app-stat-tile [label]="'routes.stats.dose' | t" [value]="stats().doseUsv | dose: 'total'" icon="functions"
+                   [loading]="loadingStats()" />
+    <app-stat-tile [label]="'routes.stats.min' | t" [value]="stats().minUsv | dose" icon="south"
+                   [loading]="loadingStats()" />
+    <app-stat-tile [label]="'routes.stats.gps' | t" [value]="stats().gpsPct | num: 0" unit="%" icon="satellite_alt"
+                   [hint]="'routes.detail.gpsHint' | t: { fix: stats().fixCount, total: stats().samples }" />
+    <app-stat-tile [label]="'routes.stats.samples' | t" [value]="stats().samples | num" icon="data_usage" />
+  </div>
+
+  @if (noFixCount() > 0) {
+    <p class="no-fix-note">
+      <span class="no-fix-swatch" aria-hidden="true"></span>
+      {{ 'routes.detail.noGps' | t: { count: noFixCount() } }}
+    </p>
+  }
+
+  @if (!handset() && hasSamples()) {
+    <app-sample-inspector [sample]="cursorSample()" [index]="cursor() ?? 0" [total]="measurements().length"
+                          [pinned]="pinned()" [editable]="editable()" (clear)="selected.set(null)"
+                          (addMarker)="requestMarkerAtSample($event)" (remove)="requestDeleteSample($event)" />
+  }
+</aside>
+
+@if (handset()) {
+  <mat-tab-group class="tabs" [attr.aria-label]="'routes.detail.sections' | t" animationDuration="0ms">
+    <mat-tab [label]="'routes.detail.chartTab' | t">
+      <ng-template matTabContent>
+        <div class="tab-body">
+          @if (hasSamples()) {
+            <app-route-chart-panel compact [measurements]="measurements()" [cursor]="cursor()"
+                                   (hoverIndex)="hovered.set($event)" (selectIndex)="selectSample($event)" />
+            <app-sample-inspector [sample]="cursorSample()" [index]="cursor() ?? 0" [total]="measurements().length"
+                                  [pinned]="pinned()" [editable]="editable()" (clear)="selected.set(null)"
+                                  (addMarker)="requestMarkerAtSample($event)" (remove)="requestDeleteSample($event)" />
+          } @else {
+            <p class="muted">{{ 'routes.detail.noSamples' | t }}</p>
+          }
+        </div>
+      </ng-template>
+    </mat-tab>
+    <mat-tab [label]="'routes.detail.hotspotsTab' | t">
+      <ng-template matTabContent>
+        <div class="tab-body">
+          <h3 class="section-title">{{ 'routes.detail.hotspots' | t }}</h3>
+          <app-hotspot-list [measurements]="measurements()" [activeIndex]="selected()" (select)="selectSample($event)" />
+          <h3 class="section-title">{{ 'routes.detail.histogram' | t }}</h3>
+          <app-dose-histogram [measurements]="measurements()" />
+        </div>
+      </ng-template>
+    </mat-tab>
+    <mat-tab [label]="('routes.detail.markersTab' | t: { count: markers().length })">
+      <ng-template matTabContent>
+        <div class="tab-body">
+          <app-marker-list [markers]="markers()" [activeId]="activeMarkerId()" [editable]="editable()"
+                           (select)="selectMarker($event)" (remove)="deleteMarker.emit($event)" />
+        </div>
+      </ng-template>
+    </mat-tab>
+  </mat-tab-group>
+} @else {
+  <section class="panel chart-area" [attr.aria-label]="'routes.detail.chart' | t">
+    @if (hasSamples()) {
+      <app-route-chart-panel [measurements]="measurements()" [cursor]="cursor()"
+                             (hoverIndex)="hovered.set($event)" (selectIndex)="selectSample($event)" />
+    } @else if (samplesState() === 'loading') {
+      <div class="chart-skeleton" aria-hidden="true"></div>
+    } @else {
+      <p class="muted">{{ 'routes.detail.noSamples' | t }}</p>
+    }
+  </section>
+  <section class="panel hotspots" aria-labelledby="route-hotspots-title">
+    <h3 class="section-title" id="route-hotspots-title">{{ 'routes.detail.hotspots' | t }}</h3>
+    <app-hotspot-list [measurements]="measurements()" [activeIndex]="selected()" (select)="selectSample($event)"
+                      (hover)="hovered.set($event)" />
+  </section>
+  <section class="panel histogram" aria-labelledby="route-histogram-title">
+    <h3 class="section-title" id="route-histogram-title">{{ 'routes.detail.histogram' | t }}</h3>
+    <app-dose-histogram [measurements]="measurements()" />
+  </section>
+  <section class="panel markers" aria-labelledby="route-markers-title">
+    <h3 class="section-title" id="route-markers-title">
+      {{ 'routes.detail.markers' | t }}
+      <span class="count app-num">{{ markers().length | num }}</span>
+    </h3>
+    <app-marker-list [markers]="markers()" [activeId]="activeMarkerId()" [editable]="editable()"
+                     (select)="selectMarker($event)" (remove)="deleteMarker.emit($event)" />
+  </section>
+}

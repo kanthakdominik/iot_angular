@@ -1,0 +1,79 @@
+<div class="section-head">
+  <div>
+    <h2>{{ 'settings.account.title' | t }}</h2>
+  </div>
+</div>
+
+@if (auth.user(); as user) {
+  <div class="card">
+    <dl class="facts">
+      <dt>{{ 'settings.account.username' | t }}</dt>
+      <dd>{{ user.username }}</dd>
+      <dt>{{ 'settings.account.role' | t }}</dt>
+      <dd>
+        {{ roleKeys[user.role] | t }}
+        <span class="app-muted"> – {{ (user.role === 'ADMIN' ? 'settings.account.adminHint' : 'settings.account.viewerHint') | t }}</span>
+      </dd>
+    </dl>
+  </div>
+}
+
+<div class="card">
+  <h3>{{ 'settings.password' | t }}</h3>
+  <form class="form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <!-- for password managers -->
+    <input type="text" class="app-visually-hidden" autocomplete="username" [value]="auth.user()?.username ?? ''"
+           tabindex="-1" aria-hidden="true" readonly />
+    @if (error(); as message) {
+      <div class="banner" role="alert">
+        <mat-icon aria-hidden="true">error</mat-icon>
+        <span>{{ message }}</span>
+      </div>
+    }
+    <mat-form-field>
+      <mat-label>{{ 'auth.password.current' | t }}</mat-label>
+      <input #currentInput matInput type="password" formControlName="current" autocomplete="current-password" required />
+      @if (form.controls.current.hasError('wrongCurrent')) {
+        <mat-error>{{ 'auth.password.wrongCurrent' | t }}</mat-error>
+      } @else {
+        <mat-error>{{ 'common.dialog.required' | t }}</mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>{{ 'auth.password.new' | t }}</mat-label>
+      <input matInput [type]="showPassword() ? 'text' : 'password'" formControlName="password"
+             autocomplete="new-password" required />
+      <button matIconButton matIconSuffix type="button" (click)="showPassword.set(!showPassword())"
+              [attr.aria-label]="(showPassword() ? 'auth.login.hidePassword' : 'auth.login.showPassword') | t"
+              [attr.aria-pressed]="showPassword()">
+        <mat-icon aria-hidden="true">{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+      </button>
+      <mat-hint>{{ 'settings.account.passwordHint' | t: { min: minLength } }}</mat-hint>
+      @if (form.controls.password.hasError('passwordTooShort')) {
+        <mat-error>{{ 'auth.password.tooShort' | t: { min: minLength } }}</mat-error>
+      } @else if (form.controls.password.hasError('passwordTooLong')) {
+        <mat-error>{{ 'auth.password.tooLong' | t: { max: maxBytes } }}</mat-error>
+      } @else {
+        <mat-error>{{ 'common.dialog.required' | t }}</mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>{{ 'auth.password.repeat' | t }}</mat-label>
+      <input matInput [type]="showPassword() ? 'text' : 'password'" formControlName="confirm"
+             autocomplete="new-password" required />
+      @if (form.controls.confirm.hasError('mismatch')) {
+        <mat-error>{{ 'auth.password.mismatch' | t }}</mat-error>
+      } @else {
+        <mat-error>{{ 'common.dialog.required' | t }}</mat-error>
+      }
+    </mat-form-field>
+    <div class="form-actions">
+      <button matButton="filled" type="submit" [disabled]="saving()">
+        @if (saving()) {
+          <mat-spinner diameter="18" aria-hidden="true" />
+        }
+        {{ 'settings.account.changePassword' | t }}
+      </button>
+    </div>
+  </form>
+</div>

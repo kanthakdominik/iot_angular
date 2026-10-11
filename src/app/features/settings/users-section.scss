@@ -1,0 +1,76 @@
+.table-card {
+  padding: 0 var(--app-space-4);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--app-radius-card);
+
+  > app-skeleton,
+  > app-empty-state {
+    display: flex;
+    margin: var(--app-space-4) 0;
+  }
+}
+
+.users {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: var(--app-space-2) var(--app-space-2);
+    text-align: start;
+    vertical-align: middle;
+  }
+
+  th {
+    height: 48px;
+    font: var(--mat-sys-label-large);
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  tbody tr {
+    border-top: 1px solid var(--mat-sys-outline-variant);
+  }
+
+  td {
+    height: 56px;
+  }
+
+  .actions {
+    width: 48px;
+    text-align: end;
+  }
+
+  @media (max-width: 599.98px) {
+    .created {
+      display: none;
+    }
+  }
+}
+
+.username {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--app-space-2);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+
+  mat-icon {
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.you {
+  padding: 0 6px;
+  border-radius: 6px;
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+  font-size: 11px;
+  line-height: 18px;
+  font-weight: 500;
+}
+
+.danger,
+.danger mat-icon {
+  color: var(--mat-sys-error);
+}

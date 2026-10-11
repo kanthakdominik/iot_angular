@@ -1,0 +1,165 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-4);
+}
+
+.intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--app-space-3);
+}
+
+.viewer-note {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-2);
+  color: var(--mat-sys-on-surface-variant);
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+  }
+}
+
+.list-card {
+  padding: 0 var(--app-space-4);
+
+  > app-skeleton,
+  > app-empty-state {
+    margin: var(--app-space-4) 0;
+  }
+}
+
+.rules {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rule {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--app-space-3);
+  padding: var(--app-space-3) 0;
+
+  & + & {
+    border-top: 1px solid var(--mat-sys-outline-variant);
+  }
+
+  &.disabled .main {
+    opacity: 0.64;
+  }
+}
+
+.state {
+  display: flex;
+  color: var(--mat-sys-outline);
+
+  &.on {
+    color: var(--mat-sys-primary);
+  }
+
+  mat-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 32px;
+  }
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-2);
+
+  > mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+    color: var(--mat-sys-tertiary);
+  }
+}
+
+.name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.off {
+  font-size: 12px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px var(--app-space-4);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--mat-sys-on-surface-variant);
+
+  > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .condition {
+    color: var(--mat-sys-on-surface);
+    font-weight: 500;
+  }
+
+  mat-icon {
+    width: 14px;
+    height: 14px;
+    font-size: 14px;
+  }
+}
+
+.actions {
+  display: flex;
+}
+
+.ntfy {
+  display: flex;
+  gap: var(--app-space-3);
+  padding: var(--app-space-4);
+  border-radius: var(--app-radius-card);
+  background: var(--mat-sys-surface-container-low);
+
+  > mat-icon {
+    flex: none;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: var(--app-space-1);
+  }
+
+  p {
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+@media (max-width: 599.98px) {
+  .rule {
+    grid-template-columns: auto minmax(0, 1fr);
+
+    .actions {
+      grid-column: 2;
+    }
+  }
+}

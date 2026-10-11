@@ -1,0 +1,33 @@
+export const authPl = {
+  login: {
+    title: 'Logowanie',
+    heading: 'Zaloguj się',
+    intro: 'Dostęp mają tylko konta założone przez administratora.',
+    username: 'Nazwa użytkownika',
+    password: 'Hasło',
+    submit: 'Zaloguj',
+    showPassword: 'Pokaż hasło',
+    hidePassword: 'Ukryj hasło',
+    usernameRequired: 'Podaj nazwę użytkownika',
+    passwordRequired: 'Podaj hasło',
+    invalidCredentials: 'Nieprawidłowa nazwa użytkownika lub hasło',
+    tooManyAttempts: 'Zbyt wiele nieudanych prób. Odczekaj kilkanaście minut i spróbuj ponownie.',
+    network: 'Brak połączenia z serwerem. Sprawdź internet i spróbuj ponownie.',
+    sharedHint: 'Link do udostępnionej trasy otwiera się bez logowania.',
+    illustration: 'Ślad pomiarowy na tle poziomic',
+  },
+  password: {
+    current: 'Obecne hasło',
+    new: 'Nowe hasło',
+    repeat: 'Powtórz nowe hasło',
+    tooShort: 'Hasło musi mieć co najmniej {min} znaków',
+    tooLong: 'Hasło jest za długie (maks. {max} bajtów)',
+    mismatch: 'Hasła nie są takie same',
+    wrongCurrent: 'Obecne hasło jest nieprawidłowe',
+    changed: 'Hasło zostało zmienione',
+  },
+  username: {
+    invalid: '3–50 znaków: litery, cyfry, kropka, podkreślnik lub myślnik',
+  },
+  loggedOut: 'Wylogowano',
+};

@@ -1,0 +1,46 @@
+<div class="search">
+  <mat-icon aria-hidden="true">search</mat-icon>
+  <input #input type="text" role="combobox" aria-autocomplete="list" aria-expanded="true"
+         aria-controls="app-palette-list" [attr.aria-activedescendant]="activeId()"
+         [attr.aria-label]="'nav.search.inputLabel' | t" [placeholder]="'nav.search.placeholder' | t"
+         [value]="query()" (input)="query.set(input.value)" (keydown)="onKeydown($event)"
+         autocomplete="off" autocapitalize="off" spellcheck="false" />
+  @if (searching()) {
+    <mat-spinner diameter="20" aria-hidden="true" />
+  }
+</div>
+
+<div class="results" id="app-palette-list" role="listbox" [attr.aria-label]="'nav.search.dialogLabel' | t">
+  @for (group of groups(); track group.key) {
+    <div role="group" [attr.aria-labelledby]="'app-palette-group-' + group.key">
+      <div class="group-title" role="presentation" [id]="'app-palette-group-' + group.key">{{ group.title }}</div>
+      @for (item of group.items; track item.id) {
+        <div class="option" role="option" [id]="optionId(item)" [attr.aria-selected]="optionId(item) === activeId()"
+             [class.active]="optionId(item) === activeId()" (click)="select(item)" (mousemove)="activate(item)">
+          <mat-icon aria-hidden="true">{{ item.icon }}</mat-icon>
+          <span class="text">
+            <span class="label">{{ item.label }}</span>
+            @if (item.detail; as detail) {
+              <span class="detail">
+                @for (part of detail; track $index) {
+                  <span>{{ part }}</span>
+                }
+              </span>
+            }
+          </span>
+        </div>
+      }
+    </div>
+  }
+  @if (emptyText(); as text) {
+    <p class="empty">{{ text }}</p>
+  }
+</div>
+
+<div class="app-visually-hidden" aria-live="polite">{{ status() }}</div>
+
+<footer class="keys" aria-hidden="true">
+  <span><kbd>↑</kbd><kbd>↓</kbd> {{ 'nav.search.keysNavigate' | t }}</span>
+  <span><kbd>↵</kbd> {{ 'nav.search.keysOpen' | t }}</span>
+  <span><kbd>Esc</kbd> {{ 'nav.search.keysClose' | t }}</span>
+</footer>

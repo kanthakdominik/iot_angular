@@ -1,0 +1,85 @@
+@let a = alert();
+<span class="icon" aria-hidden="true">
+  <mat-icon [class.app-icon-filled]="isOpen()">{{ icons[a.type] }}</mat-icon>
+</span>
+
+<div class="main">
+  <div class="line">
+    <span class="rule">{{ a.ruleName || (typeKeys[a.type] | t) }}</span>
+    @if (isOpen()) {
+      <span class="badge">{{ 'alerts.openBadge' | t }}</span>
+    }
+  </div>
+  <p class="message">{{ a.message }}</p>
+
+  @if (!compact() && a.value !== null) {
+    <p class="values">
+      @switch (a.type) {
+        @case ('DOSE_RATE_ABOVE') {
+          <span class="value app-num">{{ a.value | dose }}</span>
+          @if (a.threshold !== null) {
+            <span class="threshold">{{ 'alerts.thresholdAbove' | t: { value: (a.threshold | dose) } }}</span>
+          }
+        }
+        @case ('BATTERY_BELOW') {
+          <span class="value app-num">{{ a.value | num }}&nbsp;%</span>
+          @if (a.threshold !== null) {
+            <span class="threshold">{{ 'alerts.thresholdBelow' | t: { value: (a.threshold | num) + ' %' } }}</span>
+          }
+        }
+      }
+    </p>
+  }
+
+  <div class="meta">
+    @if (a.deviceId) {
+      <a [routerLink]="['/devices', a.deviceId]">
+        <mat-icon aria-hidden="true">sensors</mat-icon>{{ a.deviceName ?? a.deviceId }}
+      </a>
+    }
+    @if (a.routeId !== null) {
+      <a [routerLink]="['/routes', a.routeId]">
+        <mat-icon aria-hidden="true">route</mat-icon>{{ 'alerts.routeLink' | t: { id: '' + a.routeId } }}
+      </a>
+      @if (hasPosition() && !compact()) {
+        <a [routerLink]="['/routes', a.routeId]" [attr.title]="'alerts.showOnMap' | t">
+          <mat-icon aria-hidden="true">location_on</mat-icon>
+          <span class="app-num">{{ a.latitude | num: 5 }}, {{ a.longitude | num: 5 }}</span>
+        </a>
+      }
+    } @else if (hasPosition() && !compact()) {
+      <span>
+        <mat-icon aria-hidden="true">location_on</mat-icon>
+        <span class="app-num">{{ a.latitude | num: 5 }}, {{ a.longitude | num: 5 }}</span>
+      </span>
+    }
+    <time [attr.datetime]="a.ts" [attr.title]="a.ts | dateTime: 'datetimeSeconds'">{{ a.ts | relativeTime }}</time>
+  </div>
+
+  @if (!isOpen() && !compact()) {
+    <p class="acked">
+      <mat-icon aria-hidden="true">done</mat-icon>
+      <span>
+        {{ 'alerts.acknowledgedBy' | t: { user: a.acknowledgedBy ?? '—' } }}
+        <time [attr.datetime]="a.acknowledgedAt" [attr.title]="a.acknowledgedAt | dateTime: 'datetimeSeconds'">
+          {{ a.acknowledgedAt | relativeTime }}
+        </time>
+      </span>
+    </p>
+  }
+</div>
+
+@if (canAck() && isOpen()) {
+  @if (compact()) {
+    <button matIconButton type="button" class="ack" (click)="ack.emit(a)" [disabled]="busy()"
+            [attr.aria-label]="'alerts.acknowledgeNamed' | t: { name: a.ruleName }" [matTooltip]="'alerts.acknowledge' | t">
+      <mat-icon aria-hidden="true">done</mat-icon>
+    </button>
+  } @else {
+    <button matButton="outlined" type="button" class="ack" (click)="ack.emit(a)" [disabled]="busy()"
+            [attr.aria-label]="'alerts.acknowledgeNamed' | t: { name: a.ruleName }">
+      <mat-icon aria-hidden="true">done</mat-icon>
+      {{ 'alerts.acknowledge' | t }}
+    </button>
+  }
+}

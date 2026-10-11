@@ -1,0 +1,85 @@
+<div class="intro">
+  <p class="app-measure app-muted">{{ 'alerts.rules.intro' | t }}</p>
+  @if (auth.isAdmin()) {
+    <button matButton="filled" type="button" (click)="edit()">
+      <mat-icon aria-hidden="true">add</mat-icon>
+      {{ 'alerts.rules.add' | t }}
+    </button>
+  }
+</div>
+
+@if (!auth.isAdmin()) {
+  <p class="viewer-note">
+    <mat-icon aria-hidden="true">lock</mat-icon>
+    <span>{{ 'alerts.rules.viewerNote' | t }}</span>
+  </p>
+}
+
+<mat-card class="list-card" [attr.aria-busy]="rules.isLoading()">
+  @if (rules.error() && !rules.hasValue()) {
+    <app-empty-state icon="cloud_off" [title]="'common.states.loadFailed' | t"
+                     [actionLabel]="'common.actions.retry' | t" (action)="rules.reload()" />
+  } @else if (!rules.hasValue()) {
+    <app-skeleton shape="text" [lines]="4" />
+  } @else if (list().length === 0) {
+    <app-empty-state icon="rule" [title]="'alerts.rules.empty' | t" [text]="'alerts.rules.emptyText' | t" />
+  } @else {
+    <ul class="rules">
+      @for (rule of list(); track rule.id) {
+        <li class="rule" [class.disabled]="!rule.enabled">
+          @if (auth.isAdmin()) {
+            <mat-slide-toggle [checked]="rule.enabled" (change)="toggle(rule, $event)" [disabled]="busy() === rule.id"
+                              [attr.aria-label]="'alerts.rules.toggle' | t: { name: rule.name }" />
+          } @else {
+            <span class="state" [class.on]="rule.enabled">
+              <mat-icon aria-hidden="true">{{ rule.enabled ? 'toggle_on' : 'toggle_off' }}</mat-icon>
+              <span class="app-visually-hidden">{{ (rule.enabled ? 'alerts.rules.on' : 'alerts.rules.off') | t }}</span>
+            </span>
+          }
+          <div class="main">
+            <div class="title">
+              <mat-icon aria-hidden="true">{{ icons[rule.type] }}</mat-icon>
+              <span class="name">{{ rule.name }}</span>
+              @if (!rule.enabled) {
+                <span class="off">{{ 'alerts.rules.off' | t }}</span>
+              }
+            </div>
+            <div class="details">
+              <span class="condition app-num">{{ condition(rule) }}</span>
+              <span><mat-icon aria-hidden="true">sensors</mat-icon>{{ device(rule) }}</span>
+              <span>
+                <mat-icon aria-hidden="true">timer</mat-icon>
+                {{ (rule.cooldownMinutes > 0 ? 'alerts.rules.cooldown' : 'alerts.rules.noCooldown') | t: { count: rule.cooldownMinutes } }}
+              </span>
+              <span>
+                <mat-icon aria-hidden="true">{{ rule.notifyPush ? 'notifications_active' : 'notifications_off' }}</mat-icon>
+                {{ (rule.notifyPush ? 'alerts.rules.pushOn' : 'alerts.rules.pushOff') | t }}
+              </span>
+            </div>
+          </div>
+          @if (auth.isAdmin()) {
+            <div class="actions">
+              <button matIconButton type="button" (click)="edit(rule)" [disabled]="busy() === rule.id"
+                      [attr.aria-label]="'alerts.rules.editNamed' | t: { name: rule.name }" [matTooltip]="'common.actions.edit' | t">
+                <mat-icon aria-hidden="true">edit</mat-icon>
+              </button>
+              <button matIconButton type="button" (click)="remove(rule)" [disabled]="busy() === rule.id"
+                      [attr.aria-label]="'alerts.rules.deleteNamed' | t: { name: rule.name }" [matTooltip]="'common.actions.delete' | t">
+                <mat-icon aria-hidden="true">delete</mat-icon>
+              </button>
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  }
+</mat-card>
+
+<aside class="ntfy">
+  <mat-icon aria-hidden="true">phone_iphone</mat-icon>
+  <div>
+    <h3>{{ 'alerts.ntfy.title' | t }}</h3>
+    <p class="app-measure">{{ 'alerts.ntfy.text' | t }}</p>
+    <p class="app-measure">{{ 'alerts.ntfy.setup' | t }}</p>
+  </div>
+</aside>

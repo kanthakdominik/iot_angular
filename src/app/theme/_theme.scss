@@ -1,0 +1,34 @@
+// Material 3 theme (docs/UI.md §2): own palettes, Archivo, density 0.
+// Light / dark / system via `color-scheme` on <html>; ThemeService sets data-theme="system|light|dark".
+@use '@angular/material' as mat;
+@use './palettes';
+
+$font-family: (Archivo, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif);
+
+html {
+  color-scheme: light dark;
+
+  @include mat.theme((
+    color: (
+      primary: palettes.$primary-palette,
+      tertiary: palettes.$tertiary-palette,
+      theme-type: color-scheme,
+    ),
+    typography: (
+      plain-family: $font-family,
+      brand-family: $font-family,
+      bold-weight: 700,
+      medium-weight: 500,
+      regular-weight: 400,
+    ),
+    density: 0,
+  ));
+}
+
+html[data-theme='light'] {
+  color-scheme: light;
+}
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+}

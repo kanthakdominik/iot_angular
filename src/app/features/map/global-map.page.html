@@ -1,0 +1,75 @@
+<div class="app-page-full">
+  <div class="layout">
+    <div class="toolbar" role="search">
+      <mat-form-field class="dates">
+        <mat-label>{{ 'map.grid.dateRange' | t }}</mat-label>
+        <mat-date-range-input [formGroup]="dateRange" [rangePicker]="picker">
+          <input matStartDate formControlName="start" [placeholder]="'map.grid.dateFrom' | t" />
+          <input matEndDate formControlName="end" [placeholder]="'map.grid.dateTo' | t" />
+        </mat-date-range-input>
+        <mat-datepicker-toggle matIconSuffix [for]="picker" />
+        <mat-date-range-picker #picker />
+      </mat-form-field>
+
+      <mat-form-field class="device">
+        <mat-label>{{ 'map.grid.device' | t }}</mat-label>
+        <mat-select [value]="device()" (selectionChange)="device.set($event.value)">
+          <mat-option value="">{{ 'map.grid.allDevices' | t }}</mat-option>
+          @for (d of devices(); track d.id) {
+            <mat-option [value]="d.id">{{ d.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      @if (hasFilters()) {
+        <button matButton type="button" class="clear" (click)="clearFilters()">
+          <mat-icon aria-hidden="true">filter_alt_off</mat-icon>{{ 'map.grid.clearFilters' | t }}
+        </button>
+      }
+
+      <span class="spacer"></span>
+
+      <div class="metric">
+        <span class="metric-label" id="map-metric-label">{{ 'map.grid.metric' | t }}</span>
+        <mat-button-toggle-group [value]="metric()" (change)="setMetric($event.value)" hideSingleSelectionIndicator
+                                 aria-labelledby="map-metric-label">
+          <mat-button-toggle value="avg">{{ 'map.grid.avg' | t }}</mat-button-toggle>
+          <mat-button-toggle value="max">{{ 'map.grid.max' | t }}</mat-button-toggle>
+        </mat-button-toggle-group>
+      </div>
+    </div>
+
+    <div class="map-wrap" [attr.aria-busy]="state() === 'loading'">
+      <div #map class="map" role="region" [attr.aria-label]="'map.grid.label' | t"></div>
+      @if (state() === 'loading') {
+        <mat-progress-bar class="progress" mode="indeterminate" />
+      }
+      <div class="status app-num" role="status">
+        @switch (state()) {
+          @case ('loading') { {{ 'common.states.loading' | t }} }
+          @case ('ready') {
+            {{ 'map.grid.cells' | t: { count: cellCount() } }}
+            @if (cellSize(); as size) {
+              <span class="muted">{{ 'map.grid.cellSize' | t: { size: size } }}</span>
+            }
+          }
+        }
+      </div>
+      @if (truncated()) {
+        <p class="notice">{{ 'map.grid.truncated' | t }}</p>
+      }
+      @if (empty()) {
+        <div class="overlay">
+          <app-empty-state class="overlay-card" icon="travel_explore" [title]="'map.grid.empty' | t"
+                           [text]="(hasFilters() ? 'map.grid.emptyFiltered' : 'map.grid.emptyText') | t" />
+        </div>
+      }
+      @if (state() === 'error') {
+        <div class="overlay">
+          <app-empty-state class="overlay-card interactive" icon="cloud_off" [title]="'map.grid.failed' | t" [text]="errorText()"
+                           [actionLabel]="'common.actions.retry' | t" (action)="retry()" />
+        </div>
+      }
+    </div>
+  </div>
+</div>

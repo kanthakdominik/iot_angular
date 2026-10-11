@@ -1,0 +1,218 @@
+<div class="app-page dashboard">
+  @if (welcome()) {
+    <section class="welcome" [attr.aria-label]="'dashboard.welcome.title' | t">
+      <app-empty-state icon="sensors" [title]="'dashboard.welcome.title' | t" [text]="'dashboard.welcome.text' | t">
+        <a matButton="outlined" routerLink="/devices">{{ 'dashboard.allDevices' | t }}</a>
+      </app-empty-state>
+      <ol class="steps">
+        <li>
+          <span class="step-no app-num" aria-hidden="true">1</span>
+          <div><h3>{{ 'dashboard.welcome.step1Title' | t }}</h3><p>{{ 'dashboard.welcome.step1' | t }}</p></div>
+        </li>
+        <li>
+          <span class="step-no app-num" aria-hidden="true">2</span>
+          <div><h3>{{ 'dashboard.welcome.step2Title' | t }}</h3><p>{{ 'dashboard.welcome.step2' | t }}</p></div>
+        </li>
+        <li>
+          <span class="step-no app-num" aria-hidden="true">3</span>
+          <div><h3>{{ 'dashboard.welcome.step3Title' | t }}</h3><p>{{ 'dashboard.welcome.step3' | t }}</p></div>
+        </li>
+      </ol>
+    </section>
+  } @else {
+    <!-- devices: the live readouts are the hero of the page -->
+    <section class="app-stack" [attr.aria-label]="'dashboard.devices' | t" [attr.aria-busy]="devices.loading()">
+      <app-page-header [title]="'dashboard.devices' | t">
+        @if (devices.devices(); as list) {
+          @if (list.length) {
+            <span headerMeta class="app-muted">
+              {{ 'dashboard.onlineCount' | t: { online: devices.onlineCount(), total: list.length } }}
+            </span>
+          }
+        }
+        <a headerActions matButton routerLink="/devices">
+          {{ 'dashboard.allDevices' | t }}
+          <mat-icon iconPositionEnd aria-hidden="true">chevron_right</mat-icon>
+        </a>
+      </app-page-header>
+
+      @if (devices.devices(); as list) {
+        @if (list.length) {
+          <div class="device-grid">
+            @for (device of list; track device.id) {
+              <app-device-card [device]="device" [reading]="devices.readings().get(device.id)"
+                               (changed)="devices.upsert($event)" />
+            }
+          </div>
+        } @else {
+          <app-empty-state icon="sensors_off" [title]="'dashboard.noDevices' | t" [text]="'dashboard.noDevicesText' | t" />
+        }
+      } @else if (devices.error()) {
+        <app-empty-state icon="cloud_off" [title]="'common.states.loadFailed' | t"
+                         [actionLabel]="'common.actions.retry' | t" (action)="devices.load()" />
+      } @else {
+        <div class="device-grid">
+          <app-skeleton height="268px" />
+          <app-skeleton height="268px" />
+        </div>
+        <span class="app-visually-hidden">{{ 'common.states.loading' | t }}</span>
+      }
+    </section>
+
+    <!-- totals -->
+    <section [attr.aria-label]="'dashboard.totals.title' | t" [attr.aria-busy]="summary.isLoading()">
+      <h2 class="app-visually-hidden">{{ 'dashboard.totals.title' | t }}</h2>
+      @if (summary.error() && !stats()) {
+        <app-empty-state icon="cloud_off" [title]="'common.states.loadFailed' | t"
+                         [actionLabel]="'common.actions.retry' | t" (action)="summary.reload()" />
+      } @else {
+        @let s = stats();
+        <div class="app-grid kpis" style="--app-grid-min: 168px">
+          <app-stat-tile icon="route" [label]="'dashboard.totals.routes' | t" [value]="s?.routeCount"
+                         [loading]="!s" />
+          <app-stat-tile icon="straighten" [label]="'dashboard.totals.distance' | t" [value]="s?.distanceM | distance"
+                         [loading]="!s" />
+          <app-stat-tile icon="scatter_plot" [label]="'dashboard.totals.samples' | t" [value]="s?.sampleCount"
+                         [loading]="!s" />
+          <app-stat-tile icon="functions" [label]="'dashboard.totals.dose' | t" [value]="s?.doseUsv | dose: 'total'"
+                         [hint]="'dashboard.totals.doseHint' | t" [loading]="!s" />
+          <app-stat-tile icon="arrow_upward" [label]="'dashboard.totals.maxUsv' | t" [value]="s?.maxUsv?.value | dose"
+                         [loading]="!s">
+            @if (s?.maxUsv; as max) {
+              <a class="tile-link" [routerLink]="['/routes', max.routeId]">
+                <span class="swatch" [style.background]="maxColor()"
+                      aria-hidden="true"></span>
+                <span class="text">{{ max.routeName }}</span>
+              </a>
+              <span class="tile-hint">{{ max.ts | dateTime: 'date' }}</span>
+            }
+          </app-stat-tile>
+          <app-stat-tile icon="warning" [label]="'dashboard.totals.openAlerts' | t" [value]="alerts.count()"
+                         [class.warn]="alerts.count() > 0">
+            <a class="tile-link" routerLink="/alerts">
+              <span class="text">{{ (alerts.count() > 0 ? 'dashboard.totals.reviewAlerts' : 'dashboard.totals.noOpenAlerts') | t }}</span>
+            </a>
+          </app-stat-tile>
+        </div>
+      }
+    </section>
+
+    <div class="row route-activity">
+      <!-- latest route -->
+      <section class="app-stack" [attr.aria-label]="'dashboard.lastRoute' | t">
+        <app-page-header [title]="'dashboard.lastRoute' | t" [level]="2">
+          <a headerActions matButton routerLink="/routes">
+            {{ 'dashboard.allRoutes' | t }}
+            <mat-icon iconPositionEnd aria-hidden="true">chevron_right</mat-icon>
+          </a>
+        </app-page-header>
+        @if (!stats()) {
+          <app-skeleton height="220px" />
+        } @else {
+          @if (lastRoute(); as r) {
+          <mat-card class="last-route">
+            <a class="cover" [routerLink]="['/routes', r.id]" tabindex="-1" aria-hidden="true">
+              <app-track-thumbnail [track]="r.preview?.track" [width]="320" [height]="180" />
+            </a>
+            <div class="route-info">
+              <div class="route-title">
+                <h3><a [routerLink]="['/routes', r.id]">{{ r.name }}</a></h3>
+                @if (r.active) {
+                  <span class="live-badge"><span class="dot" aria-hidden="true"></span>{{ 'dashboard.recording' | t }}</span>
+                }
+              </div>
+              <div class="route-meta">
+                <span><mat-icon aria-hidden="true">sensors</mat-icon>{{ r.deviceName ?? r.deviceId }}</span>
+                <time [attr.datetime]="r.startedAt">
+                  <mat-icon aria-hidden="true">event</mat-icon>{{ r.startedAt | dateTime }}
+                </time>
+              </div>
+              @if (r.preview?.spark?.length) {
+                <app-sparkline class="spark" [values]="r.preview?.spark ?? []" [height]="40" area
+                               [ariaLabel]="'dashboard.sparkLabel' | t: { max: (r.maxUsv | dose) }" />
+              }
+              <dl class="route-stats">
+                <div><dt>{{ 'dashboard.routeStats.distance' | t }}</dt><dd class="app-num">{{ r.distanceM | distance }}</dd></div>
+                <div><dt>{{ 'dashboard.routeStats.duration' | t }}</dt><dd class="app-num">{{ r.startedAt | duration: r.endedAt }}</dd></div>
+                <div><dt>{{ 'dashboard.routeStats.max' | t }}</dt><dd class="app-num">{{ r.maxUsv | dose }}</dd></div>
+                <div><dt>{{ 'dashboard.routeStats.samples' | t }}</dt><dd class="app-num">{{ r.sampleCount | num }}</dd></div>
+              </dl>
+            </div>
+          </mat-card>
+          } @else {
+            <app-empty-state icon="route" [title]="'dashboard.noRoutes' | t" [text]="'dashboard.noRoutesText' | t" />
+          }
+        }
+      </section>
+
+      <!-- activity calendar -->
+      <section class="app-stack activity" [attr.aria-label]="'dashboard.activity.title' | t"
+               [attr.aria-busy]="activity.isLoading()">
+        <app-page-header [title]="'dashboard.activity.title' | t"
+                         [subtitle]="'dashboard.activity.subtitle' | t" />
+        <mat-card class="activity-card">
+          @if (activity.error() && !activity.hasValue()) {
+            <app-empty-state icon="cloud_off" [title]="'common.states.loadFailed' | t"
+                             [actionLabel]="'common.actions.retry' | t" (action)="activity.reload()" />
+          } @else if (!activity.hasValue()) {
+            <app-skeleton height="130px" />
+          } @else {
+            <app-activity-calendar [days]="activityDays()" />
+          }
+        </mat-card>
+      </section>
+    </div>
+
+    <div class="row halves">
+      <!-- open alerts -->
+      <section class="app-stack" [attr.aria-label]="'dashboard.recentAlerts' | t">
+        <app-page-header [title]="'dashboard.recentAlerts' | t">
+          <a headerActions matButton routerLink="/alerts">
+            {{ 'dashboard.allAlerts' | t }}
+            <mat-icon iconPositionEnd aria-hidden="true">chevron_right</mat-icon>
+          </a>
+        </app-page-header>
+        <mat-card class="list-card">
+          @if (alerts.loadingRecent() && alerts.recent().length === 0) {
+            <app-skeleton shape="text" [lines]="3" />
+          } @else if (alerts.recent().length === 0) {
+            <p class="quiet"><mat-icon aria-hidden="true">check_circle</mat-icon>{{ 'dashboard.noOpenAlerts' | t }}</p>
+          } @else {
+            <div role="list" aria-live="polite">
+              @for (alert of alerts.recent(); track alert.id) {
+                <app-alert-item [alert]="alert" compact [canAck]="auth.isAdmin()" [busy]="ackBusy() === alert.id"
+                                (ack)="ack($event)" />
+              }
+            </div>
+          }
+        </mat-card>
+      </section>
+
+      <!-- recent events -->
+      <section class="app-stack" [attr.aria-label]="'dashboard.recentEvents' | t">
+        <app-page-header [title]="'dashboard.recentEvents' | t">
+          <a headerActions matButton routerLink="/events">
+            {{ 'dashboard.allEvents' | t }}
+            <mat-icon iconPositionEnd aria-hidden="true">chevron_right</mat-icon>
+          </a>
+        </app-page-header>
+        <mat-card class="list-card">
+          @if (events.error() && !events.hasValue()) {
+            <app-empty-state icon="cloud_off" [title]="'common.states.loadFailed' | t"
+                             [actionLabel]="'common.actions.retry' | t" (action)="events.reload()" />
+          } @else if (!events.hasValue()) {
+            <app-skeleton shape="text" [lines]="4" />
+          } @else if (recentEvents().length === 0) {
+            <p class="quiet"><mat-icon aria-hidden="true">history</mat-icon>{{ 'events.empty' | t }}</p>
+          } @else {
+            <div role="list" aria-live="polite" aria-relevant="additions">
+              @for (event of recentEvents(); track event.id) {
+                <app-event-item [event]="event" compact />
+              }
+            </div>
+          }
+        </mat-card>
+      </section>
+    </div>
+  }
+</div>

@@ -1,0 +1,65 @@
+<mat-card class="card" [class.selected]="selected()">
+  <div class="thumb">
+    <app-track-thumbnail [track]="route().preview?.track ?? null" [width]="320" [height]="168" />
+    <mat-checkbox class="select" [checked]="selected()" [disabled]="!selectable() && !selected()" disabledInteractive
+                  (change)="toggleSelect.emit()" [aria-label]="'routes.list.selectRoute' | t: { name: route().name }"
+                  [matTooltip]="!selectable() && !selected() ? ('routes.list.selectionLimit' | t) : ''" />
+    @if (route().active) {
+      <span class="live"><span class="dot" aria-hidden="true"></span>{{ 'routes.live' | t }}</span>
+    }
+  </div>
+
+  <div class="body">
+    <div class="title-row">
+      <h3 class="name"><a class="title-link" [routerLink]="['/routes', route().id]">{{ route().name }}</a></h3>
+      @if (admin()) {
+        <button matIconButton type="button" class="menu" [matMenuTriggerFor]="menu"
+                [attr.aria-label]="'routes.list.routeActions' | t: { name: route().name }">
+          <mat-icon aria-hidden="true">more_vert</mat-icon>
+        </button>
+        <mat-menu #menu="matMenu" xPosition="before">
+          <button mat-menu-item type="button" (click)="edit.emit()">
+            <mat-icon aria-hidden="true">edit</mat-icon><span>{{ 'routes.edit.title' | t }}</span>
+          </button>
+          <button mat-menu-item type="button" class="danger" (click)="remove.emit()">
+            <mat-icon aria-hidden="true">delete</mat-icon><span>{{ 'routes.delete.action' | t }}</span>
+          </button>
+        </mat-menu>
+      }
+    </div>
+
+    <div class="meta">
+      <span class="meta-item"><mat-icon aria-hidden="true">sensors</mat-icon>{{ route().deviceName ?? route().deviceId }}</span>
+      <span class="meta-item app-num"><mat-icon aria-hidden="true">calendar_today</mat-icon>{{ route().startedAt | dateTime }}</span>
+    </div>
+
+    <dl class="numbers">
+      <div>
+        <dt>{{ 'routes.stats.duration' | t }}</dt>
+        <dd class="app-num">{{ route().startedAt | duration: route().active ? null : route().endedAt }}</dd>
+      </div>
+      <div>
+        <dt>{{ 'routes.stats.distance' | t }}</dt>
+        <dd class="app-num">{{ route().distanceM | distance }}</dd>
+      </div>
+      <div>
+        <dt>{{ 'routes.stats.samples' | t }}</dt>
+        <dd class="app-num">{{ route().sampleCount | num }}</dd>
+      </div>
+    </dl>
+
+    <div class="dose">
+      <div class="max">
+        <span class="label">{{ 'routes.stats.max' | t }}</span>
+        <span class="value app-num">
+          @if (maxColor(); as color) {
+            <span class="swatch" [style.background]="color" aria-hidden="true"></span>
+          }
+          {{ route().maxUsv | dose }}
+        </span>
+      </div>
+      <app-sparkline class="spark" [values]="route().preview?.spark ?? []" [height]="32" area
+                     [ariaLabel]="'routes.list.sparkLabel' | t: { max: (route().maxUsv | dose) }" />
+    </div>
+  </div>
+</mat-card>

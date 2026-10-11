@@ -1,1 +1,12 @@
-@import 'bootstrap/dist/css/bootstrap.min.css';
+// Global styles. Component styles live next to their components; tokens in app/theme/_tokens.scss.
+@use '@angular/cdk' as cdk;
+@use 'app/theme/theme';
+@use 'app/theme/tokens';
+@use 'app/theme/typography';
+@use 'app/theme/base';
+@use 'app/theme/overlays';
+@use 'app/theme/leaflet';
+
+// CDK overlay / a11y structural styles (menus, dialogs, command palette)
+@include cdk.overlay();
+@include cdk.a11y-visually-hidden();

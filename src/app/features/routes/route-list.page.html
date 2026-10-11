@@ -1,0 +1,245 @@
+<div class="app-page">
+  <div class="filters" role="search">
+    <mat-form-field class="search">
+      <mat-icon matIconPrefix aria-hidden="true">search</mat-icon>
+      <mat-label>{{ 'routes.list.search' | t }}</mat-label>
+      <input matInput type="search" autocomplete="off" [value]="searchText()" (input)="onSearch($any($event.target).value)"
+             [placeholder]="'routes.list.searchPlaceholder' | t" />
+      @if (searchText()) {
+        <button matIconSuffix matIconButton type="button" (click)="clearSearch()" [attr.aria-label]="'routes.list.clearSearch' | t">
+          <mat-icon aria-hidden="true">close</mat-icon>
+        </button>
+      }
+    </mat-form-field>
+
+    <mat-form-field class="device">
+      <mat-label>{{ 'routes.list.device' | t }}</mat-label>
+      <mat-select [value]="device() ?? ''" (selectionChange)="setDevice($event.value)">
+        <mat-option value="">{{ 'routes.list.allDevices' | t }}</mat-option>
+        @for (d of devices(); track d.id) {
+          <mat-option [value]="d.id">{{ d.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="dates">
+      <mat-label>{{ 'routes.list.dateRange' | t }}</mat-label>
+      <mat-date-range-input [formGroup]="dateRange" [rangePicker]="picker">
+        <input matStartDate formControlName="start" [placeholder]="'routes.list.dateFrom' | t" />
+        <input matEndDate formControlName="end" [placeholder]="'routes.list.dateTo' | t" />
+      </mat-date-range-input>
+      @if (fromDate() || toDate()) {
+        <button matIconSuffix matIconButton type="button" (click)="clearDates()" [attr.aria-label]="'routes.list.clearDates' | t">
+          <mat-icon aria-hidden="true">close</mat-icon>
+        </button>
+      }
+      <mat-datepicker-toggle matIconSuffix [for]="picker" />
+      <mat-date-range-picker #picker />
+    </mat-form-field>
+
+    <span class="spacer"></span>
+
+    @if (effectiveView() === 'cards') {
+      <div class="sort">
+        <mat-form-field class="sort-field">
+          <mat-label>{{ 'routes.list.sort' | t }}</mat-label>
+          <mat-select [value]="sortKey()" (selectionChange)="setSort($event.value)">
+            @for (key of sorts; track key) {
+              <mat-option [value]="key">{{ sortLabels[key] | t }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <button matIconButton type="button" (click)="toggleDir()"
+                [attr.aria-label]="'routes.list.toggleDir' | t: { dir: ((sortDir() === 'asc' ? 'routes.list.dir.asc' : 'routes.list.dir.desc') | t) }"
+                [matTooltip]="'routes.list.toggleDir' | t: { dir: ((sortDir() === 'asc' ? 'routes.list.dir.asc' : 'routes.list.dir.desc') | t) }">
+          <mat-icon aria-hidden="true">{{ sortDir() === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+        </button>
+      </div>
+    }
+
+    @if (!layout.isHandset()) {
+      <mat-button-toggle-group class="view-toggle" [value]="view()" (change)="setView($event.value)" hideSingleSelectionIndicator
+                               [attr.aria-label]="'routes.list.view' | t">
+        <mat-button-toggle value="cards" [attr.aria-label]="'routes.list.viewCards' | t" [matTooltip]="'routes.list.viewCards' | t">
+          <mat-icon aria-hidden="true">grid_view</mat-icon>
+        </mat-button-toggle>
+        <mat-button-toggle value="table" [attr.aria-label]="'routes.list.viewTable' | t" [matTooltip]="'routes.list.viewTable' | t">
+          <mat-icon aria-hidden="true">table_rows</mat-icon>
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+    }
+  </div>
+
+  <div class="summary">
+    <span class="total app-num" role="status">
+      @if (result(); as r) {
+        {{ 'routes.list.total' | t: { count: r.totalElements } }}
+      }
+    </span>
+    @if (hasFilters()) {
+      <button matButton type="button" (click)="clearFilters()">
+        <mat-icon aria-hidden="true">filter_alt_off</mat-icon>{{ 'routes.list.clearFilters' | t }}
+      </button>
+    }
+  </div>
+
+  <div class="results" [attr.aria-busy]="state() === 'loading' || loadingMore()">
+    @if (loadingMore() && state() === 'ready') {
+      <mat-progress-bar class="refresh" mode="indeterminate" />
+    }
+    @switch (state()) {
+      @case ('loading') {
+        <span class="app-visually-hidden">{{ 'common.states.loading' | t }}</span>
+        @if (effectiveView() === 'cards') {
+          <div class="cards">
+            @for (item of [1, 2, 3, 4, 5, 6, 7, 8]; track item) {
+              <div class="card-skeleton">
+                <app-skeleton height="168px" />
+                <div class="card-skeleton-body">
+                  <app-skeleton shape="text" width="70%" />
+                  <app-skeleton shape="text" [lines]="2" />
+                  <app-skeleton height="32px" />
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="table-skeleton">
+            @for (item of [1, 2, 3, 4, 5, 6, 7, 8]; track item) {
+              <app-skeleton height="44px" />
+            }
+          </div>
+        }
+      }
+      @case ('error') {
+        <app-empty-state icon="cloud_off" [title]="'routes.list.loadFailed' | t" [text]="errorText()"
+                         [actionLabel]="'common.actions.retry' | t" (action)="reload()" />
+      }
+      @default {
+        @if (!routes().length) {
+          @if (hasFilters()) {
+            <app-empty-state icon="search_off" [title]="'routes.list.noMatches' | t" [text]="'routes.list.noMatchesText' | t"
+                             [actionLabel]="'routes.list.clearFilters' | t" (action)="clearFilters()" />
+          } @else {
+            <app-empty-state icon="route" [title]="'routes.empty' | t" [text]="'routes.list.emptyText' | t" />
+          }
+        } @else if (effectiveView() === 'cards') {
+          <div class="cards">
+            @for (r of routes(); track r.id) {
+              <app-route-card [route]="r" [selected]="isSelected(r)" [selectable]="!selectionFull()" [admin]="auth.isAdmin()"
+                              (toggleSelect)="toggleSelected(r)" (edit)="edit(r)" (remove)="remove(r)" />
+            }
+          </div>
+        } @else {
+          <div class="table-wrap">
+            <table mat-table class="table" [dataSource]="routes()" [trackBy]="trackById" matSort [matSortActive]="sortKey()"
+                   [matSortDirection]="sortDir()" matSortDisableClear (matSortChange)="onSortChange($event)">
+              <ng-container matColumnDef="select">
+                <th mat-header-cell *matHeaderCellDef class="col-select">
+                  <span class="app-visually-hidden">{{ 'routes.list.compare' | t }}</span>
+                </th>
+                <td mat-cell *matCellDef="let r" class="col-select">
+                  <mat-checkbox [checked]="isSelected(r)" [disabled]="selectionFull() && !isSelected(r)" disabledInteractive
+                                (change)="toggleSelected(r)" [aria-label]="'routes.list.selectRoute' | t: { name: r.name }" />
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header="name" start="asc">{{ 'routes.list.columns.name' | t }}</th>
+                <td mat-cell *matCellDef="let r" class="col-name">
+                  <a [routerLink]="['/routes', r.id]">{{ r.name }}</a>
+                  @if (r.active) {
+                    <span class="live-dot" [attr.aria-label]="'routes.live' | t" role="img" [matTooltip]="'routes.live' | t"></span>
+                  }
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="device">
+                <th mat-header-cell *matHeaderCellDef>{{ 'routes.list.columns.device' | t }}</th>
+                <td mat-cell *matCellDef="let r">{{ r.deviceName ?? r.deviceId }}</td>
+              </ng-container>
+              <ng-container matColumnDef="startedAt">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header="startedAt">{{ 'routes.list.columns.startedAt' | t }}</th>
+                <td mat-cell *matCellDef="let r" class="app-num nowrap">{{ r.startedAt | dateTime }}</td>
+              </ng-container>
+              <ng-container matColumnDef="duration">
+                <th mat-header-cell *matHeaderCellDef class="num">{{ 'routes.list.columns.duration' | t }}</th>
+                <td mat-cell *matCellDef="let r" class="app-num num">{{ r.startedAt | duration: r.active ? null : r.endedAt }}</td>
+              </ng-container>
+              <ng-container matColumnDef="distance">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header="distance" arrowPosition="before" class="num">{{ 'routes.list.columns.distance' | t }}</th>
+                <td mat-cell *matCellDef="let r" class="app-num num">{{ r.distanceM | distance }}</td>
+              </ng-container>
+              <ng-container matColumnDef="samples">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header="samples" arrowPosition="before" class="num">{{ 'routes.list.columns.samples' | t }}</th>
+                <td mat-cell *matCellDef="let r" class="app-num num">{{ r.sampleCount | num }}</td>
+              </ng-container>
+              <ng-container matColumnDef="maxUsv">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header="maxUsv" arrowPosition="before" class="num">{{ 'routes.list.columns.maxUsv' | t }}</th>
+                <td mat-cell *matCellDef="let r" class="app-num num">
+                  <span class="dose">
+                    @if (doseColor(r.maxUsv); as color) {
+                      <span class="swatch" [style.background]="color" aria-hidden="true"></span>
+                    }
+                    {{ r.maxUsv | dose }}
+                  </span>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="preview">
+                <th mat-header-cell *matHeaderCellDef>{{ 'routes.list.columns.preview' | t }}</th>
+                <td mat-cell *matCellDef="let r" class="col-spark">
+                  <app-sparkline [values]="r.preview?.spark ?? []" [height]="24" />
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef class="col-actions"></th>
+                <td mat-cell *matCellDef="let r" class="col-actions">
+                  @if (auth.isAdmin()) {
+                    <button matIconButton type="button" [matMenuTriggerFor]="rowMenu" [matMenuTriggerData]="{ route: r }"
+                            [attr.aria-label]="'routes.list.routeActions' | t: { name: r.name }">
+                      <mat-icon aria-hidden="true">more_vert</mat-icon>
+                    </button>
+                  }
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="tableColumns"></tr>
+              <tr mat-row *matRowDef="let r; columns: tableColumns" [class.selected]="isSelected(r)"></tr>
+            </table>
+          </div>
+          <mat-menu #rowMenu="matMenu" xPosition="before">
+            <ng-template matMenuContent let-route="route">
+              <button mat-menu-item type="button" (click)="edit(route)">
+                <mat-icon aria-hidden="true">edit</mat-icon><span>{{ 'routes.edit.title' | t }}</span>
+              </button>
+              <button mat-menu-item type="button" class="danger" (click)="remove(route)">
+                <mat-icon aria-hidden="true">delete</mat-icon><span>{{ 'routes.delete.action' | t }}</span>
+              </button>
+            </ng-template>
+          </mat-menu>
+        }
+      }
+    }
+  </div>
+
+  @if (result(); as r) {
+    @if (r.totalElements > pageSizes[0] || page() > 0) {
+      <mat-paginator class="paginator" [length]="r.totalElements" [pageIndex]="page()" [pageSize]="size()"
+                     [pageSizeOptions]="pageSizes" showFirstLastButtons (page)="onPage($event)" />
+    }
+  }
+
+  @if (selected().size) {
+    <div class="selection-bar" role="region" [attr.aria-label]="'routes.list.compare' | t">
+      <span class="selection-count" role="status">{{ 'routes.list.selected' | t: { count: selected().size } }}</span>
+      <span class="selection-names">
+        @for (name of selectedNames(); track $index) {
+          <span class="selection-name">{{ name }}</span>
+        }
+      </span>
+      <span class="spacer"></span>
+      <button matButton type="button" (click)="clearSelection()">{{ 'routes.list.clearSelection' | t }}</button>
+      <button matButton="filled" type="button" (click)="compare()" [disabled]="selected().size < 2"
+              [matTooltip]="selected().size < 2 ? ('routes.list.compareHint' | t) : ''">
+        <mat-icon aria-hidden="true">compare_arrows</mat-icon>{{ 'routes.list.compare' | t }}
+      </button>
+    </div>
+  }
+</div>

@@ -1,0 +1,239 @@
+<div class="app-page">
+  @if (current(); as d) {
+    <!-- header -->
+    <header class="header">
+      <div class="titles">
+        <span class="status" [class.on]="d.online">
+          <span class="dot" aria-hidden="true"></span>
+          {{ (d.online ? 'devices.online' : 'devices.offline') | t }}
+        </span>
+        <h2 class="name">{{ name() }}</h2>
+        @if (name() !== d.id) {
+          <span class="id app-num">{{ d.id }}</span>
+        }
+      </div>
+      @if (auth.isAdmin()) {
+        <div class="actions">
+          <button matButton="outlined" type="button" (click)="command(d, 'new-route')"
+                  [disabled]="!d.online || busy() !== null">
+            <mat-icon aria-hidden="true">add_road</mat-icon>
+            {{ 'devices.commands.newRouteShort' | t }}
+          </button>
+          <button matButton="outlined" type="button" (click)="command(d, 'battery')"
+                  [disabled]="!d.online || busy() !== null">
+            <mat-icon aria-hidden="true">battery_charging_full</mat-icon>
+            {{ 'devices.commands.batteryShort' | t }}
+          </button>
+          <button matButton="outlined" type="button" (click)="importFromSd(d)" [disabled]="busy() !== null">
+            <mat-icon aria-hidden="true">sd_card</mat-icon>
+            {{ 'devices.import.action' | t }}
+          </button>
+          <button matIconButton type="button" (click)="rename(d)" [attr.aria-label]="'common.actions.rename' | t"
+                  [matTooltip]="'common.actions.rename' | t">
+            <mat-icon aria-hidden="true">edit</mat-icon>
+          </button>
+        </div>
+        @if (!d.online) {
+          <p class="commands-hint app-muted">{{ 'devices.commands.offlineHint' | t }}</p>
+        }
+      }
+    </header>
+
+    <div class="top">
+      <!-- live reading + quick facts -->
+      <mat-card class="reading-card">
+        @if (d.online) {
+          <app-dose-readout [value]="liveReading()?.usv" [label]="'devices.doseRateNow' | t" size="lg" live />
+          <p class="reading-meta" aria-live="off">
+            @if (liveReading(); as r) {
+              <time [attr.datetime]="r.ts" [attr.title]="r.ts | dateTime: 'datetimeSeconds'">
+                {{ 'devices.readingAt' | t: { time: (r.ts | relativeTime) } }}
+              </time>
+            } @else {
+              {{ 'devices.noReading' | t }}
+            }
+          </p>
+          @if (d.currentRouteId !== null) {
+            <a matButton="tonal" class="route-button" [routerLink]="['/routes', d.currentRouteId]">
+              <mat-icon aria-hidden="true">route</mat-icon>
+              {{ 'devices.openCurrentRoute' | t: { no: d.currentRouteNo ?? d.currentRouteId } }}
+            </a>
+          }
+        } @else {
+          <div class="offline">
+            <mat-icon aria-hidden="true">cloud_off</mat-icon>
+            <div>
+              <p class="offline-title">{{ 'devices.offlineTitle' | t }}</p>
+              <p class="app-muted">
+                {{ 'devices.offlineSince' | t }}
+                <time [attr.datetime]="d.lastSeenAt" [attr.title]="d.lastSeenAt | dateTime: 'datetimeSeconds'">{{ d.lastSeenAt | relativeTime }}</time>
+              </p>
+            </div>
+          </div>
+        }
+        <div class="quick">
+          <div class="quick-item" [class.warn]="lowBattery()">
+            <mat-icon aria-hidden="true">{{ batteryIcon() }}</mat-icon>
+            <div>
+              <span class="quick-label">{{ 'devices.battery' | t }}</span>
+              <span class="quick-value app-num">
+                {{ d.batteryPct | num }}@if (d.batteryPct !== null) {&nbsp;%}
+                @if (d.batteryMv !== null) {
+                  <span class="sub">{{ 'devices.batteryMv' | t: { mv: d.batteryMv } }}</span>
+                }
+              </span>
+            </div>
+          </div>
+          <div class="quick-item">
+            <mat-icon aria-hidden="true">{{ signalIcon() }}</mat-icon>
+            <div>
+              <span class="quick-label">{{ 'devices.signal' | t }}</span>
+              <span class="quick-value app-num">
+                {{ d.signalCsq | csq }}
+                @if (d.signalCsq !== null) {
+                  <span class="sub">{{ 'common.signal.bars' | t: { bars: (d.signalCsq | csq: 'bars') } }}</span>
+                }
+              </span>
+            </div>
+          </div>
+        </div>
+      </mat-card>
+
+      <!-- information -->
+      <mat-card class="info-card">
+        <h3>{{ 'devices.info.title' | t }}</h3>
+        <dl class="info">
+          <dt>{{ 'devices.info.id' | t }}</dt>
+          <dd class="app-num">{{ d.id }}</dd>
+          <dt>{{ 'devices.firmware' | t }}</dt>
+          <dd>{{ d.fwVersion ?? '—' }}</dd>
+          <dt>{{ 'devices.info.lastReset' | t }}</dt>
+          <dd>{{ d.lastReset ?? '—' }}</dd>
+          <dt>{{ 'devices.info.currentRoute' | t }}</dt>
+          <dd>
+            @if (d.currentRouteId !== null) {
+              <a [routerLink]="['/routes', d.currentRouteId]">{{ 'devices.routeNo' | t: { no: d.currentRouteNo ?? d.currentRouteId } }}</a>
+            } @else {
+              —
+            }
+          </dd>
+          <dt>{{ 'devices.lastSeen' | t }}</dt>
+          <dd>
+            <time [attr.datetime]="d.lastSeenAt">{{ d.lastSeenAt | dateTime: 'datetimeSeconds' }}</time>
+            @if (d.lastSeenAt) {
+              <span class="app-muted"> ({{ d.lastSeenAt | relativeTime }})</span>
+            }
+          </dd>
+          <dt>{{ 'devices.info.batteryAt' | t }}</dt>
+          <dd><time [attr.datetime]="d.batteryAt">{{ d.batteryAt | dateTime }}</time></dd>
+          <dt>{{ 'devices.info.signalAt' | t }}</dt>
+          <dd><time [attr.datetime]="d.signalAt">{{ d.signalAt | dateTime }}</time></dd>
+          <dt>{{ 'devices.routes' | t }}</dt>
+          <dd>{{ d.routeCount | num }}</dd>
+        </dl>
+      </mat-card>
+    </div>
+
+    <!-- battery and signal history -->
+    <mat-card class="health-card">
+      <app-device-health [deviceId]="d.id" [refresh]="healthRefresh()" />
+    </mat-card>
+
+    <div class="bottom">
+      <!-- routes of this device -->
+      <section class="app-stack" [attr.aria-label]="'devices.routesTitle' | t" [attr.aria-busy]="routes.isLoading()">
+        <div class="section-head">
+          <h3>{{ 'devices.routesTitle' | t }}</h3>
+          @if (routeTotal() > 0) {
+            <a matButton [routerLink]="['/routes']" [queryParams]="{ deviceId: d.id }">
+              {{ 'devices.allRoutes' | t: { count: routeTotal() } }}
+              <mat-icon iconPositionEnd aria-hidden="true">chevron_right</mat-icon>
+            </a>
+          }
+        </div>
+        <mat-card class="list-card">
+          @if (routes.error() && !routes.hasValue()) {
+            <app-empty-state icon="cloud_off" [title]="'common.states.loadFailed' | t"
+                             [actionLabel]="'common.actions.retry' | t" (action)="routes.reload()" />
+          } @else if (!routes.hasValue()) {
+            <app-skeleton shape="text" [lines]="4" />
+          } @else if (routeList().length === 0) {
+            <p class="quiet"><mat-icon aria-hidden="true">route</mat-icon>{{ 'devices.noRoutes' | t }}</p>
+          } @else {
+            <ul class="routes">
+              @for (r of routeList(); track r.id) {
+                <li>
+                  <a class="route" [routerLink]="['/routes', r.id]">
+                    <app-track-thumbnail class="thumb" [track]="r.preview?.track" [width]="96" [height]="64" />
+                    <span class="route-text">
+                      <span class="route-name">
+                        {{ r.name }}
+                        @if (r.active) {
+                          <span class="live-dot" [attr.title]="'devices.recording' | t"></span>
+                          <span class="app-visually-hidden">({{ 'devices.recording' | t }})</span>
+                        }
+                      </span>
+                      <span class="route-meta">
+                        <time [attr.datetime]="r.startedAt">{{ r.startedAt | dateTime }}</time>
+                        <span class="app-num">{{ r.distanceM | distance }}</span>
+                        <span class="app-num">{{ 'devices.routeMax' | t: { value: (r.maxUsv | dose) } }}</span>
+                      </span>
+                    </span>
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+        </mat-card>
+      </section>
+
+      <!-- events of this device -->
+      <section class="app-stack" [attr.aria-label]="'devices.eventsTitle' | t" [attr.aria-busy]="events.isLoading()">
+        <div class="section-head">
+          <h3>{{ 'devices.eventsTitle' | t }}</h3>
+          <a matButton [routerLink]="['/events']" [queryParams]="{ deviceId: d.id }">
+            {{ 'devices.allEvents' | t }}
+            <mat-icon iconPositionEnd aria-hidden="true">chevron_right</mat-icon>
+          </a>
+        </div>
+        <mat-card class="list-card">
+          @if (events.error() && !events.hasValue()) {
+            <app-empty-state icon="cloud_off" [title]="'common.states.loadFailed' | t"
+                             [actionLabel]="'common.actions.retry' | t" (action)="events.reload()" />
+          } @else if (!events.hasValue()) {
+            <app-skeleton shape="text" [lines]="5" />
+          } @else if (eventList().length === 0) {
+            <p class="quiet"><mat-icon aria-hidden="true">history</mat-icon>{{ 'events.empty' | t }}</p>
+          } @else {
+            <div role="list" aria-live="polite" aria-relevant="additions">
+              @for (event of eventList(); track event.id) {
+                <app-event-item [event]="event" [showDevice]="false" compact />
+              }
+            </div>
+            @if (eventTotal() > eventsSize) {
+              <mat-paginator [length]="eventTotal()" [pageIndex]="eventsPage()" [pageSize]="eventsSize" hidePageSize
+                             (page)="pageEvents($event)" />
+            }
+          }
+        </mat-card>
+      </section>
+    </div>
+  } @else if (notFound()) {
+    <app-empty-state icon="sensors_off" [title]="'devices.notFound' | t" [text]="'devices.notFoundText' | t: { id: id() }">
+      <a matButton="outlined" routerLink="/devices">{{ 'devices.backToList' | t }}</a>
+    </app-empty-state>
+  } @else if (device.error()) {
+    <app-empty-state icon="cloud_off" [title]="'common.states.loadFailed' | t"
+                     [actionLabel]="'common.actions.retry' | t" (action)="device.reload()" />
+  } @else {
+    <div class="loading" aria-busy="true">
+      <app-skeleton shape="text" width="240px" [lines]="2" />
+      <div class="top">
+        <app-skeleton height="260px" />
+        <app-skeleton height="260px" />
+      </div>
+      <app-skeleton height="320px" />
+      <span class="app-visually-hidden">{{ 'common.states.loading' | t }}</span>
+    </div>
+  }
+</div>

@@ -1,0 +1,41 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-4);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--app-space-2);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.count {
+  margin-inline-start: 6px;
+  padding: 0 6px;
+  border-radius: 8px;
+  background: var(--mat-sys-tertiary);
+  color: var(--mat-sys-on-tertiary);
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.list-card {
+  padding: 0 var(--app-space-4);
+
+  > app-skeleton,
+  > app-empty-state {
+    margin: var(--app-space-4) 0;
+  }
+}
+
+mat-paginator {
+  margin: 0 calc(-1 * var(--app-space-4));
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  background: transparent;
+}

@@ -1,0 +1,55 @@
+<header class="bar">
+  @if (compact()) {
+    <a class="brand" routerLink="/dashboard" [attr.aria-label]="'nav.home' | t">
+      <img src="favicon.svg" alt="" width="28" height="28" />
+    </a>
+  }
+  <h1 class="title app-heading">{{ pageTitle.title() }}</h1>
+  <span class="live" [attr.data-status]="live.status()" role="img" tabindex="0"
+        [attr.aria-label]="liveLabel()" [matTooltip]="liveLabel()"></span>
+
+  <span class="spacer"></span>
+
+  @if (compact()) {
+    <button matIconButton type="button" (click)="palette.open()" aria-haspopup="dialog"
+            [attr.aria-label]="'nav.search.open' | t">
+      <mat-icon aria-hidden="true">search</mat-icon>
+    </button>
+  } @else {
+    <button type="button" class="search" (click)="palette.open()" aria-haspopup="dialog"
+            [attr.aria-label]="('nav.search.open' | t) + ' (' + shortcut + ')'">
+      <mat-icon aria-hidden="true">search</mat-icon>
+      <span class="placeholder">{{ 'nav.search.button' | t }}</span>
+      <kbd>{{ shortcut }}</kbd>
+    </button>
+  }
+
+  <app-notifications-button />
+
+  @if (!compact()) {
+    <button matIconButton type="button" (click)="theme.cycle()" [attr.aria-label]="themeLabel()"
+            [matTooltip]="themeLabel()">
+      <mat-icon aria-hidden="true">{{ themeIcon() }}</mat-icon>
+    </button>
+
+    <button type="button" class="avatar" [matMenuTriggerFor]="userMenu"
+            [attr.aria-label]="('nav.user.menu' | t) + ': ' + auth.user()?.username">
+      <span aria-hidden="true">{{ initial() }}</span>
+    </button>
+    <mat-menu #userMenu="matMenu" xPosition="before">
+      <div class="app-menu-header" role="none">
+        <span class="name">{{ auth.user()?.username }}</span>
+        <span class="role">{{ roleKey() | t }}</span>
+      </div>
+      <mat-divider />
+      <a mat-menu-item routerLink="/settings">
+        <mat-icon aria-hidden="true">settings</mat-icon>
+        <span>{{ 'nav.settings' | t }}</span>
+      </a>
+      <button mat-menu-item type="button" (click)="auth.logout()">
+        <mat-icon aria-hidden="true">logout</mat-icon>
+        <span>{{ 'nav.user.logout' | t }}</span>
+      </button>
+    </mat-menu>
+  }
+</header>

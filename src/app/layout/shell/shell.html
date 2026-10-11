@@ -1,0 +1,19 @@
+<a class="skip-link" href="#main" (click)="skipToMain($event, main)">{{ 'nav.skipToContent' | t }}</a>
+
+<mat-sidenav-container class="container" [attr.data-nav]="layout.navMode()" [autosize]="true">
+  @if (layout.navMode() !== 'bottom') {
+    <mat-sidenav class="rail" mode="side" [opened]="true" [disableClose]="true">
+      <app-nav-rail [collapsed]="layout.navMode() === 'rail-collapsed'" />
+    </mat-sidenav>
+  }
+  <mat-sidenav-content class="content">
+    <app-top-bar [compact]="layout.isHandset()" />
+    <main #main id="main" class="main" tabindex="-1">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+
+@if (layout.isHandset()) {
+  <app-bottom-nav />
+}

@@ -1,0 +1,96 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+  // the route view sizes its map from the top bar height
+  --app-top-bar-height: 64px;
+
+  @media (max-width: 599.98px) {
+    --app-top-bar-height: 56px;
+  }
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-3);
+  height: var(--app-top-bar-height);
+  padding: 0 var(--app-space-2) 0 var(--app-gutter);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--app-space-2);
+  color: var(--mat-sys-on-surface);
+  text-decoration: none;
+}
+
+.brand-name {
+  font-size: 18px;
+  font-weight: 600;
+  font-stretch: 112%;
+}
+
+.read-only {
+  padding: 2px var(--app-space-2);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--app-radius-chip);
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-medium);
+  white-space: nowrap;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.language {
+  --mat-button-toggle-height: 32px;
+}
+
+.main {
+  display: block;
+}
+
+.message {
+  max-width: 720px;
+  padding: var(--app-space-6) var(--app-gutter);
+}
+
+.loading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  gap: var(--app-space-4);
+  padding: var(--app-space-4) var(--app-gutter);
+}
+
+.loading-map {
+  height: clamp(420px, calc(100dvh - var(--app-top-bar-height) - 32px), 760px);
+}
+
+.loading-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-3);
+}
+
+@media (max-width: 1279.98px) {
+  .loading {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .loading-map {
+    height: 55vh;
+  }
+}
+
+@media (max-width: 599.98px) {
+  .read-only {
+    display: none;
+  }
+}

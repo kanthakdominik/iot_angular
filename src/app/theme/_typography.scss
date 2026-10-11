@@ -1,0 +1,86 @@
+// Typography utilities (UI.md §2): one typeface, personality from the width axis.
+// Scale 12 / 14 / 16 / 20 / 28 / 40 / 56 px. Numbers always tabular; units in a smaller size next to the number.
+
+h1, h2, h3, h4 {
+  margin: 0;
+  font-weight: 600;
+  font-stretch: 112%;
+}
+
+h1 {
+  font-size: 28px;
+  line-height: 36px;
+}
+
+h2 {
+  font-size: 20px;
+  line-height: 28px;
+}
+
+h3 {
+  font-size: 16px;
+  line-height: 24px;
+}
+
+p {
+  margin: 0;
+}
+
+.app-heading {
+  font-weight: 600;
+  font-stretch: 112%;
+}
+
+// numeric readouts and tiles: expanded, semibold, tabular
+.app-num-expanded {
+  font-weight: 600;
+  font-stretch: 125%;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.app-num {
+  font-variant-numeric: tabular-nums;
+}
+
+// unit after a number, sized relative to it ("0,184" + "µSv/h")
+.app-unit {
+  margin-inline-start: 0.3em;
+  font-size: 0.45em;
+  font-weight: 500;
+  font-stretch: 100%;
+  letter-spacing: 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.app-text-12 { font-size: 12px; line-height: 16px; }
+.app-text-14 { font-size: 14px; line-height: 20px; }
+.app-text-16 { font-size: 16px; line-height: 24px; }
+.app-text-20 { font-size: 20px; line-height: 28px; }
+.app-text-28 { font-size: 28px; line-height: 36px; }
+.app-text-40 { font-size: 40px; line-height: 48px; }
+.app-text-56 { font-size: 56px; line-height: 64px; }
+
+.app-muted {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+// descriptions: max. 72 characters per line
+.app-measure {
+  max-width: 72ch;
+}
+
+kbd {
+  display: inline-block;
+  min-width: 1.6em;
+  padding: 0 4px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 18px;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+  background: var(--mat-sys-surface-container);
+}

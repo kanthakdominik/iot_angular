@@ -1,0 +1,48 @@
+:host {
+  display: block;
+  height: 100dvh;
+}
+
+.container {
+  height: 100%;
+  // sidenav tokens (Material 3): flat rail on the page surface
+  --mat-sidenav-container-background-color: var(--mat-sys-surface);
+  --mat-sidenav-content-background-color: var(--mat-sys-surface);
+  --mat-sidenav-container-shape: 0;
+  --mat-sidenav-container-divider-color: transparent;
+}
+
+.rail {
+  width: var(--app-rail-width);
+  border: 0;
+}
+
+.container[data-nav='rail-collapsed'] .rail {
+  width: var(--app-rail-width-collapsed);
+}
+
+.main {
+  display: block;
+  min-height: calc(100% - var(--app-top-bar-height));
+  outline: none;
+}
+
+.container[data-nav='bottom'] .main {
+  padding-bottom: calc(var(--app-bottom-nav-height) + env(safe-area-inset-bottom));
+}
+
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 10;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: var(--mat-sys-inverse-surface);
+  color: var(--mat-sys-inverse-on-surface);
+  transform: translateY(-200%);
+
+  &:focus {
+    transform: none;
+  }
+}

@@ -1,0 +1,156 @@
+<div class="app-page">
+  <div class="picker-row">
+    @if (compared().length) {
+      <mat-chip-set class="chips" [attr.aria-label]="'routes.compareTitle' | t">
+        @for (r of compared(); track r.id) {
+          <mat-chip class="chip" (removed)="remove(r.id)">
+            <span class="chip-content">
+              <span class="swatch" [style.background]="r.color" aria-hidden="true"></span>
+              <a class="chip-link" [routerLink]="['/routes', r.id]">{{ r.route.name }}</a>
+            </span>
+            <button matChipRemove [attr.aria-label]="'routes.compare.remove' | t: { name: r.route.name }">
+              <mat-icon aria-hidden="true">cancel</mat-icon>
+            </button>
+          </mat-chip>
+        }
+      </mat-chip-set>
+    }
+    <mat-form-field class="picker">
+      <mat-icon matIconPrefix aria-hidden="true">add</mat-icon>
+      <mat-label>{{ 'routes.compare.search' | t }}</mat-label>
+      <input matInput type="search" autocomplete="off" [value]="searchText()" (input)="onSearch($any($event.target).value)"
+             (focus)="openPicker()" [matAutocomplete]="auto" [disabled]="full()"
+             [placeholder]="'routes.compare.searchPlaceholder' | t" />
+      @if (full()) {
+        <mat-hint>{{ 'routes.compare.limit' | t }}</mat-hint>
+      }
+      <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayNothing" (optionSelected)="add($event)">
+        @for (option of options(); track option.id) {
+          <mat-option [value]="option" [disabled]="isCompared(option.id)">
+            <span class="option">
+              <span class="option-name">{{ option.name }}</span>
+              <span class="option-meta app-num">{{ option.deviceName ?? option.deviceId }}, {{ option.startedAt | dateTime: 'date' }}</span>
+            </span>
+          </mat-option>
+        }
+        @if (!searching() && !options().length) {
+          <mat-option disabled>{{ 'routes.compare.noResults' | t }}</mat-option>
+        }
+      </mat-autocomplete>
+    </mat-form-field>
+  </div>
+
+  @if (pending() && !loading()) {
+    <mat-progress-bar class="pending" mode="indeterminate" />
+  }
+
+  @if (failedIds().length) {
+    <div class="banner" role="alert">
+      <mat-icon aria-hidden="true">warning</mat-icon>
+      <span>{{ 'routes.compare.invalid' | t: { count: failedIds().length, ids: '#' + failedIds().join(', #') } }}</span>
+      <button matButton type="button" (click)="removeFailed()">{{ 'common.actions.clear' | t }}</button>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="loading" aria-busy="true">
+      <mat-progress-bar mode="indeterminate" />
+      <span class="app-visually-hidden" role="status">{{ 'common.states.loading' | t }}</span>
+    </div>
+  } @else if (!compared().length) {
+    <app-empty-state icon="compare_arrows" [title]="'routes.compare.tooFew' | t" [text]="'routes.compare.tooFewText' | t">
+      <a matButton="outlined" routerLink="/routes">{{ 'routes.compare.goToList' | t }}</a>
+    </app-empty-state>
+  } @else {
+    @if (compared().length < 2) {
+      <p class="hint">{{ 'routes.compare.tooFewText' | t }}</p>
+    }
+
+    <section class="map-card" [attr.aria-label]="'routes.compare.map' | t">
+      <div #map class="map"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="compare-chart-title">
+      <div class="panel-head">
+        <h2 id="compare-chart-title" class="panel-title">{{ 'routes.compare.chart' | t }}</h2>
+        <ul class="legend">
+          @for (r of compared(); track r.id) {
+            <li class="legend-item">
+              <svg class="legend-line" width="28" height="8" aria-hidden="true">
+                <line x1="2" y1="4" x2="26" y2="4" [attr.stroke]="r.color" stroke-width="3" stroke-linecap="round"
+                      [attr.stroke-dasharray]="dashes[r.slot].length ? dashes[r.slot].join(' ') : null" />
+              </svg>
+              <span>{{ r.route.name }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+      <div class="canvas">
+        <canvas #chart role="img" [attr.aria-label]="'routes.compare.chartLabel' | t"></canvas>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="compare-table-title">
+      <h2 id="compare-table-title" class="panel-title">{{ 'routes.compare.table' | t }}</h2>
+      <div class="table-wrap">
+        <table class="stats">
+          <thead>
+            <tr>
+              <th scope="col">{{ 'routes.compare.metric' | t }}</th>
+              @for (r of compared(); track r.id) {
+                <th scope="col">
+                  <span class="col-head">
+                    <span class="swatch" [style.background]="r.color" aria-hidden="true"></span>
+                    <a [routerLink]="['/routes', r.id]">{{ r.route.name }}</a>
+                  </span>
+                </th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">{{ 'routes.list.columns.startedAt' | t }}</th>
+              @for (r of compared(); track r.id) { <td class="app-num">{{ r.route.startedAt | dateTime }}</td> }
+            </tr>
+            <tr>
+              <th scope="row">{{ 'routes.stats.distance' | t }}</th>
+              @for (r of compared(); track r.id) {
+                <td class="app-num">{{ r.stats.distanceM | distance }}@if (!r.stats.fixCount) { <span class="muted">({{ 'routes.compare.noTrack' | t }})</span> }</td>
+              }
+            </tr>
+            <tr>
+              <th scope="row">{{ 'routes.stats.duration' | t }}</th>
+              @for (r of compared(); track r.id) {
+                <td class="app-num">{{ (r.stats.startedAt !== null && r.stats.endedAt !== null ? r.stats.endedAt - r.stats.startedAt : null) | duration }}</td>
+              }
+            </tr>
+            <tr>
+              <th scope="row">{{ 'routes.stats.avg' | t }}</th>
+              @for (r of compared(); track r.id) { <td class="app-num">{{ r.stats.avgUsv | dose }}</td> }
+            </tr>
+            <tr>
+              <th scope="row">{{ 'routes.stats.max' | t }}</th>
+              @for (r of compared(); track r.id) { <td class="app-num strong">{{ r.stats.maxUsv | dose }}</td> }
+            </tr>
+            <tr>
+              <th scope="row">{{ 'routes.stats.min' | t }}</th>
+              @for (r of compared(); track r.id) { <td class="app-num">{{ r.stats.minUsv | dose }}</td> }
+            </tr>
+            <tr>
+              <th scope="row">{{ 'routes.stats.dose' | t }}</th>
+              @for (r of compared(); track r.id) { <td class="app-num">{{ r.stats.doseUsv | dose: 'total' }}</td> }
+            </tr>
+            <tr>
+              <th scope="row">{{ 'routes.stats.samples' | t }}</th>
+              @for (r of compared(); track r.id) { <td class="app-num">{{ r.stats.samples | num }}</td> }
+            </tr>
+            <tr>
+              <th scope="row">{{ 'routes.stats.gps' | t }}</th>
+              @for (r of compared(); track r.id) { <td class="app-num">{{ r.stats.gpsPct | num: 0 }}@if (r.stats.gpsPct !== null) { % }</td> }
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+</div>

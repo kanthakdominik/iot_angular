@@ -1,0 +1,309 @@
+// Route view layout (UI.md §3). Desktop: map + side panel, chart, then hotspots / histogram / markers.
+:host {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 400px;
+  grid-template-areas:
+    'map map side'
+    'chart chart chart'
+    'hotspots histogram markers';
+  align-items: start;
+  gap: var(--app-space-4);
+  padding: var(--app-space-4) var(--app-gutter) var(--app-space-6);
+}
+
+.map-area {
+  grid-area: map;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: clamp(420px, calc(100dvh - var(--app-top-bar-height) - 32px), 760px);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--app-radius-card);
+  overflow: hidden;
+  background: var(--mat-sys-surface-container);
+
+  &:fullscreen {
+    height: 100vh;
+    border: 0;
+    border-radius: 0;
+  }
+}
+
+.map {
+  flex: 1;
+  min-height: 0;
+}
+
+.playback {
+  flex: none;
+}
+
+.map-overlay {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 1000;
+  pointer-events: none;
+
+  &.center {
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: var(--app-space-4);
+    background: color-mix(in srgb, var(--mat-sys-surface) 40%, transparent);
+  }
+
+  &.top {
+    display: flex;
+    justify-content: center;
+    padding: var(--app-space-3);
+  }
+}
+
+.overlay-card {
+  max-width: 420px;
+  background: var(--mat-sys-surface);
+  border-style: solid;
+  pointer-events: auto;
+}
+
+.map-note {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--app-space-2);
+  padding: 6px var(--app-space-3);
+  border-radius: var(--app-radius-chip);
+  background: var(--mat-sys-inverse-surface);
+  color: var(--mat-sys-inverse-on-surface);
+  font-size: 12px;
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+  }
+}
+
+.side {
+  grid-area: side;
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-4);
+  min-width: 0;
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--app-space-2);
+}
+
+.titles {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--app-space-1);
+  min-width: 0;
+}
+
+.name {
+  font-size: 22px;
+  line-height: 28px;
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--app-space-1) var(--app-space-4);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+  }
+}
+
+.muted {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--app-space-1);
+
+  &:empty {
+    display: none;
+  }
+}
+
+.description {
+  max-width: 72ch;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.readouts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-4);
+  padding: var(--app-space-4);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--app-radius-card);
+  background: var(--mat-sys-surface-container-lowest);
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--app-space-2);
+}
+
+.no-fix-note {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-2);
+  font-size: 12px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.no-fix-swatch {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--app-no-fix);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-3);
+  min-width: 0;
+  padding: var(--app-space-4);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--app-radius-card);
+}
+
+.chart-area {
+  grid-area: chart;
+}
+
+.hotspots {
+  grid-area: hotspots;
+}
+
+.histogram {
+  grid-area: histogram;
+}
+
+.markers {
+  grid-area: markers;
+}
+
+.chart-skeleton {
+  height: 360px;
+  border-radius: var(--app-radius-chip);
+  background: var(--mat-sys-surface-container);
+}
+
+.section-title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--app-space-2);
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.count {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+// tablet / small desktop: one column for the map, two below
+@media (max-width: 1279.98px) {
+  :host {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      'map map'
+      'side side'
+      'chart chart'
+      'hotspots histogram'
+      'markers markers';
+  }
+
+  .map-area {
+    height: clamp(360px, 60vh, 640px);
+  }
+
+  .side {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+
+    > .head, > .description, > .no-fix-note, > app-sample-inspector {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 839.98px) {
+  .side {
+    display: flex;
+    align-items: stretch;
+  }
+
+  .tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+// phone (UI.md §3): map 55vh, readout and tiles, then tabs
+:host(.handset) {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--app-space-4);
+  padding: 0 0 var(--app-space-5);
+
+  .map-area {
+    height: 55vh;
+    min-height: 280px;
+    border-width: 0 0 1px;
+    border-radius: 0;
+  }
+
+  .side {
+    display: flex;
+    padding: 0 var(--app-gutter);
+  }
+
+  .tabs {
+    padding: 0 var(--app-gutter);
+  }
+}
+
+.tab-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-4);
+  padding: var(--app-space-4) 0;
+}
+
+.map-progress {
+  position: absolute;
+  inset: 0 0 auto;
+}

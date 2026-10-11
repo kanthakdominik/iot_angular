@@ -1,0 +1,95 @@
+<div class="app-page-full">
+  @switch (routeState()) {
+    @case ('loading') {
+      <div class="loading" aria-busy="true">
+        <span class="app-visually-hidden" role="status">{{ 'common.states.loading' | t }}</span>
+        <app-skeleton class="loading-map" height="100%" />
+        <div class="loading-side">
+          <app-skeleton shape="text" width="70%" />
+          <app-skeleton shape="text" width="45%" />
+          <app-skeleton height="132px" />
+          <div class="loading-tiles">
+            @for (tile of [1, 2, 3, 4, 5, 6]; track tile) {
+              <app-skeleton height="84px" />
+            }
+          </div>
+        </div>
+      </div>
+    }
+    @case ('notFound') {
+      <div class="app-page">
+        <app-empty-state icon="wrong_location" [title]="'routes.detail.notFound' | t" [text]="'routes.detail.notFoundText' | t">
+          <a matButton="outlined" routerLink="/routes">{{ 'routes.detail.backToList' | t }}</a>
+        </app-empty-state>
+      </div>
+    }
+    @case ('error') {
+      <div class="app-page">
+        <app-empty-state icon="cloud_off" [title]="'routes.detail.loadFailed' | t" [text]="routeError()"
+                         [actionLabel]="'common.actions.retry' | t" (action)="reload()" />
+      </div>
+    }
+    @default {
+      @if (route(); as r) {
+        <app-route-view [route]="r" [measurements]="measurements()" [samplesState]="samplesState()"
+                        [markers]="markers()" [editable]="auth.isAdmin()" [live]="isLive()" [focusMarkerId]="marker()"
+                        (addMarker)="addMarker($event)" (deleteMarker)="deleteMarker($event)"
+                        (deleteSample)="deleteSample($event)" (retry)="reload()">
+          <ng-container routeActions>
+            <button matIconButton type="button" [matMenuTriggerFor]="exportMenu" [disabled]="samplesState() !== 'ready'"
+                    [attr.aria-label]="'routes.export.title' | t" [matTooltip]="'routes.export.title' | t">
+              <mat-icon aria-hidden="true">download</mat-icon>
+            </button>
+            <button matIconButton type="button" [matMenuTriggerFor]="moreMenu"
+                    [attr.aria-label]="'routes.detail.moreActions' | t" [matTooltip]="'routes.detail.moreActions' | t">
+              <mat-icon aria-hidden="true">more_vert</mat-icon>
+            </button>
+          </ng-container>
+          <div routeStatus class="status">
+            @if (isLive()) {
+              <span class="chip live" role="status">
+                <span class="dot" aria-hidden="true"></span>{{ 'routes.live' | t }}
+              </span>
+            }
+            @if (r.shareToken && auth.isAdmin()) {
+              <button type="button" class="chip shared" (click)="share()">
+                <mat-icon aria-hidden="true">link</mat-icon>{{ 'routes.share.shared' | t }}
+              </button>
+            }
+          </div>
+        </app-route-view>
+
+        <mat-menu #exportMenu="matMenu" xPosition="before">
+          <button mat-menu-item type="button" (click)="export('gpx')">
+            <mat-icon aria-hidden="true">route</mat-icon><span>{{ 'routes.export.gpx' | t }}</span>
+          </button>
+          <button mat-menu-item type="button" (click)="export('geojson')">
+            <mat-icon aria-hidden="true">data_object</mat-icon><span>{{ 'routes.export.geojson' | t }}</span>
+          </button>
+          <button mat-menu-item type="button" (click)="export('csv')">
+            <mat-icon aria-hidden="true">table_view</mat-icon><span>{{ 'routes.export.csv' | t }}</span>
+          </button>
+        </mat-menu>
+
+        <mat-menu #moreMenu="matMenu" xPosition="before">
+          <a mat-menu-item routerLink="/routes/compare" [queryParams]="{ ids: r.id }">
+            <mat-icon aria-hidden="true">compare_arrows</mat-icon><span>{{ 'routes.detail.compareWith' | t }}</span>
+          </a>
+          @if (auth.isAdmin()) {
+            <mat-divider />
+            <button mat-menu-item type="button" (click)="edit()">
+              <mat-icon aria-hidden="true">edit</mat-icon><span>{{ 'routes.edit.title' | t }}</span>
+            </button>
+            <button mat-menu-item type="button" (click)="share()">
+              <mat-icon aria-hidden="true">share</mat-icon><span>{{ 'routes.share.action' | t }}</span>
+            </button>
+            <mat-divider />
+            <button mat-menu-item type="button" class="danger" (click)="deleteRoute()">
+              <mat-icon aria-hidden="true">delete</mat-icon><span>{{ 'routes.delete.action' | t }}</span>
+            </button>
+          }
+        </mat-menu>
+      }
+    }
+  }
+</div>

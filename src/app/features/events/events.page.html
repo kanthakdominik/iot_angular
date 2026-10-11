@@ -1,0 +1,61 @@
+<div class="app-page">
+  <app-page-header [title]="'events.heading' | t"
+                   [subtitle]="events.hasValue() ? ('events.total' | t: { count: total() }) : ''" />
+
+  <div class="filters">
+    <mat-form-field class="device-filter">
+      <mat-label>{{ 'events.filters.device' | t }}</mat-label>
+      <mat-select [value]="selectedDevice()" (selectionChange)="selectDevice($event)">
+        <mat-option [value]="null">{{ 'events.filters.allDevices' | t }}</mat-option>
+        @for (device of deviceOptions(); track device.id) {
+          <mat-option [value]="device.id">{{ device.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-chip-listbox class="type-filter" [value]="selectedType()" (change)="selectType($event)"
+                      [attr.aria-label]="'events.filters.type' | t" hideSingleSelectionIndicator>
+      @for (t of types; track t) {
+        <mat-chip-option [value]="t" [selected]="selectedType() === t">
+          <mat-icon matChipAvatar aria-hidden="true">{{ icons[t] }}</mat-icon>
+          {{ typeKeys[t] | t }}
+        </mat-chip-option>
+      }
+    </mat-chip-listbox>
+
+    @if (filtered()) {
+      <button matButton type="button" class="clear" (click)="clearFilters()">
+        <mat-icon aria-hidden="true">filter_alt_off</mat-icon>
+        {{ 'events.filters.clear' | t }}
+      </button>
+    }
+  </div>
+
+  <mat-card class="list-card" [attr.aria-busy]="events.isLoading()">
+    @if (events.error() && !events.hasValue()) {
+      <app-empty-state icon="cloud_off" [title]="'common.states.loadFailed' | t"
+                       [actionLabel]="'common.actions.retry' | t" (action)="events.reload()" />
+    } @else if (!events.hasValue()) {
+      <app-skeleton shape="text" [lines]="8" />
+      <span class="app-visually-hidden">{{ 'common.states.loading' | t }}</span>
+    } @else if (list().length === 0) {
+      @if (filtered()) {
+        <app-empty-state icon="filter_alt_off" [title]="'events.emptyFiltered' | t"
+                         [actionLabel]="'events.filters.clear' | t" (action)="clearFilters()" />
+      } @else {
+        <app-empty-state icon="history" [title]="'events.empty' | t" [text]="'events.emptyText' | t" />
+      }
+    } @else {
+      <div role="list" [attr.aria-label]="'events.listLabel' | t" [class.reloading]="events.isLoading()">
+        @for (event of list(); track event.id) {
+          <app-event-item [event]="event" [showDevice]="selectedDevice() === null" />
+        }
+      </div>
+    }
+    @if (total() > pageSize) {
+      <mat-paginator [length]="total()" [pageIndex]="pageIndex()" [pageSize]="pageSize" hidePageSize
+                     showFirstLastButtons (page)="setPage($event)" />
+    }
+  </mat-card>
+  <div class="app-visually-hidden" aria-live="polite">{{ announcement() }}</div>
+</div>

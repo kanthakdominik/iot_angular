@@ -1,0 +1,44 @@
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-3);
+  width: min(480px, 100%);
+  padding-top: var(--app-space-2) !important;
+}
+
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--app-space-2);
+  padding: var(--app-space-3);
+  border-radius: var(--app-radius-chip);
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+
+  mat-icon {
+    flex: none;
+  }
+}
+
+.toggles {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-3);
+  padding-top: var(--app-space-2);
+}
+
+.toggle-label {
+  display: block;
+}
+
+.toggle-hint {
+  display: block;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+mat-spinner {
+  display: inline-block;
+  margin-inline-end: 8px;
+}

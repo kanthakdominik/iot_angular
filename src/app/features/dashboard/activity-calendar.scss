@@ -1,0 +1,112 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+  min-width: 0;
+
+  --activity-0: var(--mat-sys-surface-container-highest);
+  --activity-1: color-mix(in srgb, var(--mat-sys-primary) 28%, var(--activity-0));
+  --activity-2: color-mix(in srgb, var(--mat-sys-primary) 50%, var(--activity-0));
+  --activity-3: color-mix(in srgb, var(--mat-sys-primary) 74%, var(--activity-0));
+  --activity-4: var(--mat-sys-primary);
+}
+
+.scroller {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 2px 2px;
+}
+
+.plot {
+  position: relative;
+  width: 100%;
+  border-radius: 4px;
+
+  &:focus-visible {
+    outline: var(--app-focus-ring);
+    outline-offset: 4px;
+  }
+}
+
+svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.label {
+  font-size: 10px;
+  fill: var(--mat-sys-on-surface-variant);
+}
+
+.cell {
+  stroke: transparent;
+  stroke-width: 1.5;
+
+  &.active {
+    stroke: var(--mat-sys-on-surface);
+  }
+}
+
+.l0 { fill: var(--activity-0); background: var(--activity-0); }
+.l1 { fill: var(--activity-1); background: var(--activity-1); }
+.l2 { fill: var(--activity-2); background: var(--activity-2); }
+.l3 { fill: var(--activity-3); background: var(--activity-3); }
+.l4 { fill: var(--activity-4); background: var(--activity-4); }
+
+.tooltip {
+  position: fixed;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: var(--mat-sys-inverse-surface);
+  color: var(--mat-sys-inverse-on-surface);
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(-50%, -100%);
+
+  &.below {
+    transform: translateX(-50%);
+  }
+
+  .date {
+    font-weight: 600;
+  }
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--app-space-2) var(--app-space-4);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+
+  > span:first-child {
+    margin-inline-end: 4px;
+  }
+
+  > span:last-child {
+    margin-inline-start: 4px;
+  }
+}
+
+.swatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+}

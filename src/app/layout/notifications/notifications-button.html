@@ -1,0 +1,50 @@
+<button matIconButton type="button" [matMenuTriggerFor]="menu" (menuOpened)="store.loadRecent()"
+        [attr.aria-label]="label()" [matTooltip]="label()">
+  <mat-icon [matBadge]="badge()" matBadgeSize="small" [matBadgeHidden]="store.count() === 0"
+            aria-hidden="true">notifications</mat-icon>
+</button>
+
+<mat-menu #menu="matMenu" xPosition="before" class="app-notifications-menu">
+  <div class="header" role="none">
+    <span class="title">{{ 'nav.notifications.title' | t }}</span>
+    @if (store.count() > 0) {
+      <span class="count app-num">{{ badge() }}</span>
+    }
+  </div>
+
+  @if (store.loadingRecent() && store.recent().length === 0) {
+    <div class="state" role="none">
+      <mat-spinner diameter="24" [attr.aria-label]="'common.states.loading' | t" />
+    </div>
+  } @else if (store.recent().length === 0) {
+    <div class="state" role="none">
+      <mat-icon aria-hidden="true">notifications_off</mat-icon>
+      <span>{{ 'nav.notifications.empty' | t }}</span>
+    </div>
+  } @else {
+    @for (alert of store.recent(); track alert.id) {
+      <a mat-menu-item class="alert" [routerLink]="link(alert)">
+        <mat-icon aria-hidden="true" [class.dose]="alert.type === 'DOSE_RATE_ABOVE'">{{ icons[alert.type] }}</mat-icon>
+        <span class="text">
+          <span class="message">{{ alert.message }}</span>
+          <span class="meta">
+            <span>{{ alert.deviceName ?? alert.deviceId }}</span>
+            <time [attr.datetime]="alert.ts" [attr.title]="alert.ts | dateTime: 'datetimeSeconds'">{{ alert.ts | relativeTime }}</time>
+          </span>
+        </span>
+      </a>
+    }
+  }
+
+  <mat-divider />
+  <a mat-menu-item routerLink="/alerts">
+    <mat-icon aria-hidden="true">list</mat-icon>
+    <span>{{ 'nav.notifications.viewAll' | t }}</span>
+  </a>
+  @if (auth.isAdmin() && store.count() > 0) {
+    <button mat-menu-item type="button" (click)="ackAll()">
+      <mat-icon aria-hidden="true">done_all</mat-icon>
+      <span>{{ 'nav.notifications.ackAll' | t }}</span>
+    </button>
+  }
+</mat-menu>

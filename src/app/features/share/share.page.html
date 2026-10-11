@@ -1,0 +1,73 @@
+<div class="page">
+  <header class="header">
+    <a class="brand" [routerLink]="auth.isLoggedIn() ? '/dashboard' : '/login'">
+      <img src="favicon.svg" alt="" width="28" height="28" />
+      <span class="brand-name">{{ 'common.appName' | t }}</span>
+    </a>
+    <span class="read-only">{{ 'share.readOnly' | t }}</span>
+    <span class="spacer"></span>
+    <mat-button-toggle-group class="language" [value]="i18n.lang()" (change)="setLanguage($event)" hideSingleSelectionIndicator
+                             [attr.aria-label]="'common.language.label' | t">
+      @for (language of languages; track language.lang) {
+        <mat-button-toggle [value]="language.lang" [attr.lang]="language.lang" [attr.aria-label]="language.labelKey | t">
+          {{ language.lang.toUpperCase() }}
+        </mat-button-toggle>
+      }
+    </mat-button-toggle-group>
+    <button matIconButton type="button" (click)="cycleTheme()" [attr.aria-label]="themeLabel()" [matTooltip]="themeLabel()">
+      <mat-icon aria-hidden="true">{{ themeIcon() }}</mat-icon>
+    </button>
+  </header>
+
+  <main class="main" id="main">
+    @switch (state()) {
+      @case ('loading') {
+        <div class="loading" aria-busy="true">
+          <span class="app-visually-hidden" role="status">{{ 'common.states.loading' | t }}</span>
+          <app-skeleton class="loading-map" height="100%" />
+          <div class="loading-side">
+            <app-skeleton shape="text" width="70%" />
+            <app-skeleton shape="text" width="45%" />
+            <app-skeleton height="132px" />
+            <app-skeleton height="180px" />
+          </div>
+        </div>
+      }
+      @case ('notFound') {
+        <div class="message">
+          <app-empty-state icon="link_off" [title]="'share.notFoundTitle' | t" [text]="'share.notFound' | t" />
+        </div>
+      }
+      @case ('error') {
+        <div class="message">
+          <app-empty-state icon="cloud_off" [title]="'share.loadFailed' | t" [text]="errorText()"
+                           [actionLabel]="'common.actions.retry' | t" (action)="reload()" />
+        </div>
+      }
+      @default {
+        @if (route(); as r) {
+          <h1 class="app-visually-hidden">{{ 'share.title' | t }}: {{ r.name }}</h1>
+          <app-route-view publicView [route]="r" [measurements]="measurements()" [samplesState]="samplesState()"
+                          [markers]="markers()" (retry)="reload()">
+            <button routeActions matIconButton type="button" [matMenuTriggerFor]="exportMenu"
+                    [disabled]="samplesState() !== 'ready'" [attr.aria-label]="'routes.export.title' | t"
+                    [matTooltip]="'routes.export.title' | t">
+              <mat-icon aria-hidden="true">download</mat-icon>
+            </button>
+          </app-route-view>
+          <mat-menu #exportMenu="matMenu" xPosition="before">
+            <button mat-menu-item type="button" (click)="export('gpx')">
+              <mat-icon aria-hidden="true">route</mat-icon><span>{{ 'routes.export.gpx' | t }}</span>
+            </button>
+            <button mat-menu-item type="button" (click)="export('geojson')">
+              <mat-icon aria-hidden="true">data_object</mat-icon><span>{{ 'routes.export.geojson' | t }}</span>
+            </button>
+            <button mat-menu-item type="button" (click)="export('csv')">
+              <mat-icon aria-hidden="true">table_view</mat-icon><span>{{ 'routes.export.csv' | t }}</span>
+            </button>
+          </mat-menu>
+        }
+      }
+    }
+  </main>
+</div>

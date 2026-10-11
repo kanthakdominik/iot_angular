@@ -1,0 +1,151 @@
+:host {
+  --bar-height: 8px;
+  --value-size: 40px;
+  --unit-size: 16px;
+
+  display: grid;
+  gap: var(--app-space-2);
+  min-width: 0;
+}
+
+:host([data-size='lg']) {
+  --bar-height: 10px;
+  --value-size: 56px;
+  --unit-size: 20px;
+
+  gap: var(--app-space-3);
+}
+
+:host([data-size='sm']) {
+  --bar-height: 6px;
+  --value-size: 28px;
+  --unit-size: 14px;
+
+  gap: 6px;
+}
+
+.label {
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.reading {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
+.value {
+  font-size: var(--value-size);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.unit {
+  font-size: var(--unit-size);
+  font-weight: 500;
+  color: var(--mat-sys-on-surface-variant);
+  white-space: nowrap;
+}
+
+.live {
+  position: relative;
+  align-self: center;
+  width: 8px;
+  height: 8px;
+  margin-inline-start: 4px;
+  border-radius: 50%;
+  background: var(--app-live);
+}
+
+.ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--app-live);
+  opacity: 0;
+}
+
+.scale {
+  position: relative;
+  margin-top: 4px;
+  // the translated needle track must not widen the page (phones); the needle itself may overhang a little
+  overflow: clip;
+  overflow-clip-margin: 16px;
+}
+
+.bar {
+  height: var(--bar-height);
+  border-radius: calc(var(--bar-height) / 2);
+}
+
+.needle-track {
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--bar-height);
+  transition: transform 450ms var(--app-ease);
+  pointer-events: none;
+}
+
+.needle {
+  position: absolute;
+  left: -1.5px;
+  top: -5px;
+  bottom: -5px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--mat-sys-on-surface);
+  box-shadow: 0 0 0 1.5px var(--mat-sys-surface);
+
+  // dose colour cap above the bar
+  &::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: -4px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    transform: translateX(-50%);
+    background: var(--app-needle-color, var(--mat-sys-on-surface));
+    box-shadow: 0 0 0 1.5px var(--mat-sys-surface), 0 0 0 2.5px var(--mat-sys-on-surface);
+  }
+
+  // above scale: arrow pointing past the end of the bar
+  &.overflow::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: -11px;
+    transform: translateY(-50%);
+    border-block: 5px solid transparent;
+    border-inline-start: 7px solid var(--mat-sys-surface);
+    filter: drop-shadow(0 0 1px var(--mat-sys-on-surface));
+  }
+}
+
+.ticks {
+  position: relative;
+  height: 16px;
+  margin-top: 6px;
+}
+
+.tick {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  font-size: 12px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+  color: var(--mat-sys-on-surface-variant);
+  white-space: nowrap;
+
+  &:first-child {
+    transform: none;
+  }
+
+  &:last-child {
+    transform: translateX(-100%);
+  }
+}
